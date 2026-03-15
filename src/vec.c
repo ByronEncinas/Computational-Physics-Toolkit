@@ -24,7 +24,7 @@ vec3 v3cross(const vec3 a, const vec3 b) {
 
 double dot(const vector *a, const vector *b){
     double dt = 0.0;
-    for (int i = 0; i<(a->data[i]); i++){
+    for (int i = 0; i<(a->n); i++){
         dt += a->data[i]*b->data[i];
     } return dt;
 }
