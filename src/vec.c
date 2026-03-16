@@ -2,24 +2,19 @@
 #include "../include/vec.h"
 #include <stdlib.h>
 
-int vadd(vector *result, const vector *a, const vector *b){
-    if (a -> n != b -> n || a -> n != result -> n){ return-1;}
+void vadd(vector *result, const vector *a, const vector *b){
+    if (a -> n != b -> n || a -> n != result -> n){ return;}
     for (int i = 0; i < (a -> n); i++){
         result -> data[i] = (a -> data[i]) + (b -> data[i]);
     }
-    return 0;
 } 
 
-vec3 v3add(const vec3 a, const vec3 b){
-    return (vec3){ a.x+b.x, a.y+b.y, a.z+b.z};
-}
 //defined for vectors in R^3
-vec3 v3cross(const vec3 a, const vec3 b) {
-    return (vec3){ 
-        (a.y * b.z) - (a.z * b.y), // X component
-        (a.z * b.x) - (a.x * b.z), // Y component
-        (a.x * b.y) - (a.y * b.x)  // Z component
-    };
+void cross(vector *result,const vector *a, const vector *b) {
+    if (a -> n != 3 || b -> n != 3 || result -> n != 3){return;}
+    result -> data[0] = (a->data[1] * b->data[2]) - (a->data[2] * b->data[1]);
+    result -> data[1] = (a->data[2] * b->data[0]) - (a->data[0] * b->data[2]);
+    result -> data[2] = (a->data[0] * b->data[1]) - (a->data[1] * b->data[0]);
 }
 
 double dot(const vector *a, const vector *b){
