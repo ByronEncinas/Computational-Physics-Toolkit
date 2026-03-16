@@ -25,6 +25,7 @@ void cross(vector *result,const vector *a, const vector *b) {
 }
 
 double dot(const vector *a, const vector *b){
+    if (a->n != b->n){ return 0.0;}
     double dt = 0.0;
     for (int i = 0; i<(a->n); i++){
         dt += a->data[i]*b->data[i];
