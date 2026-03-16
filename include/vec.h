@@ -19,6 +19,8 @@ typedef struct {
 void vadd(vector *result, const vector *a, const vector *b);
 void cross(vector *result, const vector *a, const vector *b);
 double dot(const vector *a, const vector *b);
+double norm(const vector *a);
 vector vcreate(int n);
+
 
 #endif
