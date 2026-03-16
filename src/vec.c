@@ -2,6 +2,13 @@
 #include "../include/vec.h"
 #include <stdlib.h>
 
+
+vector vcreate(int j){
+    vector v; v.n = j; v.data = malloc(j * sizeof(double));
+    if (v.data == NULL){ return (vector){0, NULL};}
+    return v;
+}
+
 void vadd(vector *result, const vector *a, const vector *b){
     if (a -> n != b -> n || a -> n != result -> n){ return;}
     for (int i = 0; i < (a -> n); i++){
