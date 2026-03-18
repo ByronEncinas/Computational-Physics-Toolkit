@@ -17,10 +17,14 @@ typedef struct {
 
 
 void vadd(vector *result, const vector *a, const vector *b);
+void vsubs(vector *result, const vector *a, const vector *b);
+void mfree(matrix *m); void vfree(vector *v);
+void matmult(matrix *result, const matrix *a, const matrix *b);
 void cross(vector *result, const vector *a, const vector *b);
 double dot(const vector *a, const vector *b);
 double norm(const vector *a);
 vector vcreate(int n);
+matrix mcreate(int m, int n);
 
 
 #endif

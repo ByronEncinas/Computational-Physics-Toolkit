@@ -3,18 +3,59 @@
 #include <stdlib.h>
 #include <math.h>
 
+//initialization of matrices
+matrix mcreate(int i, int j){
+    matrix mat; mat.m = i; mat.n = j; mat.data = malloc(i * j * sizeof(double)); 
+    if (mat.data == NULL){ return (matrix){0, 0, NULL};}
+    return mat;
+}
+
+void matmult(matrix *result, const matrix *a, const matrix *b){
+    //first, some flags to avoid errors due to the size of matrices
+    if (a->n != b->m || result->m != a->m || result->n != b->n){ return;}
+    for (int i = 0; i < result->m * result->n; i++) {
+            result->data[i] = 0.0;
+    }
+
+    for (int i = 0; i < a->m; i++){
+        for (int k = 0; k < a->n; k++){
+            for (int j = 0; j < b->n; j++){
+            result->data[i*result->n+j] += a->data[i*a->n+k] * b->data[k*b->n+j];
+            }
+        }
+    }
+}
+
 //initialization of vectors
 vector vcreate(int j){
-    vector v; v.n = j; v.data = malloc(j * sizeof(double));
-    if (v.data == NULL){ return (vector){0, NULL};}
-    return v;
+    matrix mat = mcreate(1,j);
+    if (mat.data == NULL){ return (vector){0, NULL}; }
+    return (vector){mat.n, mat.data};
 }
+
+void mfree(matrix *m){ free(m->data); m->data = NULL; m->m = m->n = 0; }
+void vfree(vector *v){ free(v->data); v->data = NULL; v->n = 0; }
+
+
+void matrow(vector *v, const matrix *a, int row){
+    if (a->data == NULL || row < 0 || row >= a->m){return;}
+    v -> n = a -> n; v -> data = &(a->data[row * a->n]);
+}
+
 
 //addition of vector
 void vadd(vector *result, const vector *a, const vector *b){
     if (a -> n != b -> n || a -> n != result -> n){ return;}
     for (int i = 0; i < (a -> n); i++){
         result -> data[i] = (a -> data[i]) + (b -> data[i]);
+    }
+} 
+
+//substraction of vectors
+void vsubs(vector *result, const vector *a, const vector *b){
+    if (a -> n != b -> n || a -> n != result -> n){ return;}
+    for (int i = 0; i < (a -> n); i++){
+        result -> data[i] = (a -> data[i]) - (b -> data[i]);
     }
 } 
 
