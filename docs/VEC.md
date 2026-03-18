@@ -37,12 +37,23 @@ Element `[i][j]` is accessed as `data[i*n + j]`.
 
 ---
 
+## Error Handling Convention
+
+All operations return `int`: **0 on success, -1 on error**. Errors include size mismatches, NULL pointers, and invalid inputs (e.g. zero vector for `unitvec`). Always check the return value — a result written to an output pointer is only valid if the function returned 0.
+
+```c
+double result;
+if (dot(&result, &a, &b) == -1){ /* handle error */ }
+```
+
+---
+
 ## Memory Management
 
 > **Important:** Every `mcreate` and `vcreate` call allocates heap memory. Always free with `mfree` or `vfree` when done.
 
 ### `matrix mcreate(int m, int n)`
-Allocates a matrix of size m×n. Returns `{0, NULL}` on allocation failure — always check before use.
+Allocates a matrix of size m×n. Returns `{0, 0, NULL}` on allocation failure — always check before use.
 ```c
 matrix a = mcreate(3, 3);
 if (a.data == NULL) { /* handle error */ }
@@ -71,70 +82,80 @@ vfree(&v);
 
 ## Vector Operations
 
-### `void vadd(vector *result, const vector *a, const vector *b)`
-Element-wise addition: `result = a + b`. All three vectors must be the same size, silently returns on mismatch.
+### `int vadd(vector *result, const vector *a, const vector *b)`
+Element-wise addition: `result = a + b`. All three vectors must be the same size. Returns `-1` on size mismatch.
 ```c
 vector a = vcreate(3), b = vcreate(3), r = vcreate(3);
 a.data[0]=1; a.data[1]=2; a.data[2]=3;
 b.data[0]=4; b.data[1]=5; b.data[2]=6;
-vadd(&r, &a, &b); // r = [5, 7, 9]
+if (vadd(&r, &a, &b) == -1) { /* size mismatch */ }
+// r = [5, 7, 9]
 ```
 
-### `void vsubs(vector *result, const vector *a, const vector *b)`
-Element-wise subtraction: `result = a - b`. All three vectors must be the same size.
+### `int vsubs(vector *result, const vector *a, const vector *b)`
+Element-wise subtraction: `result = a - b`. All three vectors must be the same size. Returns `-1` on size mismatch.
 ```c
-vsubs(&r, &a, &b); // r = a - b
+if (vsubs(&r, &a, &b) == -1) { /* size mismatch */ }
 ```
 
-### `double dot(const vector *a, const vector *b)`
-Returns the dot product of two vectors. Returns `0.0` on size mismatch.
+### `int dot(double *result, const vector *a, const vector *b)`
+Dot product of two vectors, written to `*result`. Returns `-1` on size mismatch.
 ```c
-double d = dot(&a, &b);
+double d;
+if (dot(&d, &a, &b) == -1) { /* size mismatch */ }
 ```
 
-### `void cross(vector *result, const vector *a, const vector *b)`
-Cross product. **All three vectors must be in R³ (n=3)**, silently returns otherwise.
+### `int cross(vector *result, const vector *a, const vector *b)`
+Cross product. **All three vectors must be in R³ (n=3)**. Returns `-1` otherwise.
 ```c
 vector a = vcreate(3), b = vcreate(3), r = vcreate(3);
-cross(&r, &a, &b);
+if (cross(&r, &a, &b) == -1) { /* not R³ */ }
 ```
 
-### `double norm(const vector *a)`
-Returns the Euclidean norm (magnitude) of a vector.
+### `int norm(double *result, const vector *a)`
+Euclidean norm (magnitude) of a vector, written to `*result`. Returns `-1` if `a` or `a->data` is NULL.
 ```c
-double magnitude = norm(&v);
+double mag;
+if (norm(&mag, &v) == -1) { /* null vector */ }
+```
+
+### `int unitvec(vector *u, const vector *v)`
+Writes the unit vector of `v` into `u`. Returns `-1` if `v` is NULL, `v->data` is NULL, or `v` is the zero vector.
+```c
+vector u = vcreate(3);
+if (unitvec(&u, &v) == -1) { /* null or zero vector */ }
 ```
 
 ---
 
 ## Matrix Operations
 
-### `void matmult(matrix *result, const matrix *a, const matrix *b)`
+### `int matmult(matrix *result, const matrix *a, const matrix *b)`
 Matrix multiplication: `result = a * b`.
 
 - `a` must be m×k, `b` must be k×n, `result` must be pre-allocated as m×n
-- Silently returns on dimension mismatch
+- Returns `-1` on dimension mismatch
 
 ```c
 matrix a = mcreate(2, 3); // 2x3
 matrix b = mcreate(3, 4); // 3x4
 matrix r = mcreate(2, 4); // 2x4 result
 // ... fill a and b ...
-matmult(&r, &a, &b);
+if (matmult(&r, &a, &b) == -1) { /* dimension mismatch */ }
 ```
 
 > **Note:** `result` must be allocated before calling `matmult`. The function zeroes it internally.
 
-### `void matrow(vector *v, const matrix *a, int row)`
-Makes a vector point to a row of a matrix **without copying**. The vector borrows the matrix's memory.
+### `int matrow(vector *v, const matrix *a, int row)`
+Makes a vector point to a row of a matrix **without copying**. The vector borrows the matrix's memory. Returns `-1` if `a->data` is NULL or `row` is out of bounds.
 
 ```c
 vector v;
-matrow(&v, &mat, 0); // v now points to row 0 of mat
+if (matrow(&v, &mat, 0) == -1) { /* out of bounds or null */ }
 ```
 
 > ⚠️ **Ownership warning:** Do NOT call `vfree` on a vector obtained from `matrow` — it does not own the memory. The matrix owns it. Freeing `v` will corrupt the matrix.
-> 
+>
 > Also, if the matrix is freed, `v` becomes a dangling pointer and must not be used.
 
 ---
@@ -148,7 +169,8 @@ matrix weights = mcreate(4, 3);
 
 vector row;
 matrow(&row, &weights, 2); // borrow row 2
-double n = norm(&row);     // safe — just reading
+double n;
+norm(&n, &row);            // safe — just reading
 // do NOT vfree(&row)
 mfree(&weights);           // free the matrix when done
 ```
@@ -158,7 +180,8 @@ mfree(&weights);           // free the matrix when done
 vector a = vcreate(3), b = vcreate(3), result = vcreate(3);
 // fill a and b ...
 vadd(&result, &a, &b);
-double magnitude = norm(&result);
+double magnitude;
+norm(&magnitude, &result);
 printf("magnitude: %f\n", magnitude);
 vfree(&a); vfree(&b); vfree(&result);
 ```
@@ -169,9 +192,6 @@ vfree(&a); vfree(&b); vfree(&result);
 
 ### Memory layout
 Matrices are stored in row-major order as a flat 1D array. Element `[i][j]` of an m×n matrix lives at index `i*n + j` in `data`.
-
-### Error handling convention
-All functions that receive mismatched sizes return silently (void functions) or return `0.0` (dot product). Always ensure dimensions match before calling. A future version may add explicit error codes.
 
 ---
 
