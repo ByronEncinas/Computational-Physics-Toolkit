@@ -1,6 +1,6 @@
 # vec — C Scientific Computing Library
 
-A lightweight linear algebra library in C providing vector and matrix operations for scientific computing.
+A lightweight linear algebra library in C providing vector and matrix operations for scientific computing. (documentation created with the help of Claude)
 
 ---
 
@@ -114,7 +114,6 @@ Matrix multiplication: `result = a * b`.
 
 - `a` must be m×k, `b` must be k×n, `result` must be pre-allocated as m×n
 - Silently returns on dimension mismatch
-- Uses cache-friendly loop ordering for performance
 
 ```c
 matrix a = mcreate(2, 3); // 2x3
@@ -170,9 +169,6 @@ vfree(&a); vfree(&b); vfree(&result);
 
 ### Memory layout
 Matrices are stored in row-major order as a flat 1D array. Element `[i][j]` of an m×n matrix lives at index `i*n + j` in `data`.
-
-### Why row-major matters for performance
-`matmult` uses a reordered loop (ikj instead of ijk) so the inner loop always walks sequentially through memory. This keeps data in CPU cache and avoids the costly random-access pattern of the naive nested loop.
 
 ### Error handling convention
 All functions that receive mismatched sizes return silently (void functions) or return `0.0` (dot product). Always ensure dimensions match before calling. A future version may add explicit error codes.
