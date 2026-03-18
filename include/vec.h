@@ -16,13 +16,14 @@ typedef struct {
 } matrix;
 
 
-void vadd(vector *result, const vector *a, const vector *b);
-void vsubs(vector *result, const vector *a, const vector *b);
+int vadd(vector *result, const vector *a, const vector *b);
+int vsubs(vector *result, const vector *a, const vector *b);
 void mfree(matrix *m); void vfree(vector *v);
-void matmult(matrix *result, const matrix *a, const matrix *b);
-void cross(vector *result, const vector *a, const vector *b);
-double dot(const vector *a, const vector *b);
-double norm(const vector *a);
+int matmult(matrix *result, const matrix *a, const matrix *b);
+int cross(vector *result, const vector *a, const vector *b);
+int dot(double *dt, const vector *a, const vector *b);
+int norm(double *result, const vector *a);
+int unitvec(vector *u, const vector *v);
 vector vcreate(int n);
 matrix mcreate(int m, int n);
 
