@@ -1,6 +1,35 @@
 #include<stdio.h>
 #include<math.h>
 
+float matrix_copy(float *matrix1,float *matrix2, int len);
+
+float matrix_var(float *matrix,float var1, float var2, int len);
+
+float function(float *matrix1, float *matrix2, int len, int eqs);
+
+float RK(float h,float *matrix1, int eqs,int len);
+
+void solution(float *matrix, float total_time, float h, float number);
+
+int main(){
+
+    int number,i, eqs;
+    
+    number = 6;
+    
+    float elements[number], initial[6] = {0,1,0,0,0,0};
+    float h = 0.001;
+    int steps = 1/h, time = 100;
+	
+    
+    matrix_copy(elements,initial, number);
+    
+    solution(elements, steps*time, h, number);
+    
+    
+    return 0;
+}
+
 float matrix_copy(float *matrix1,float *matrix2, int len){
 	int i;
 	
@@ -11,6 +40,7 @@ float matrix_copy(float *matrix1,float *matrix2, int len){
 	
 	return *matrix1;
 }
+
 
 float function(float *matrix1, float *matrix2, int len, int eqs){
 	int i;
@@ -39,69 +69,71 @@ float function(float *matrix1, float *matrix2, int len, int eqs){
 }
 
 
-float RK(float h,float *matrix1, int eqs,int len){
-	float k1,k2,k3,k4;
+
+float matrix_var(float *matrix, float var1, float var2, int len){
 	
-	float matrix2[6] = {0,0,0,0,0,0};
-	k1 = h*function(matrix1,matrix2,len,eqs);
+	int i;
 	
-	float matrix3[6] = {0.5*h,0.5*k1,0.5*h,0.5*k1,0.5*h,0.5*k1};
-	k2 = h*function(matrix1,matrix3,len, eqs);
-
-	float matrix4[6] = {0.5*h,0.5*k2,0.5*h,0.5*k2,0.5*h,0.5*k2};
-	k3 = h*function(matrix1,matrix4,len, eqs);
-
-	float matrix5[6] = {h,k3,h,k3,h,k3};
-	k4 = h*function(matrix1,matrix5,len, eqs);
-
-	return (k1+2*k2+2*k3+k4)/6;	
+	for (i=0;i<=len/2;i++){
+		
+		matrix[2*i] = var1;
+		matrix[2*i+1] = var2;			
+	}
+	
+	return *matrix;
+	
 }
 
 
 
-int main(){
-
-    int number,i, eqs;
-    
-    number = 6;
-    
-    float elements[number], initial[6] = {0,1,0,0,0,0};
-    float h = 0.0001;
-    int steps = 1/h, time = 100;
+float RK(float h,float *matrix1, int eqs,int len){
+	float k1,k2,k3,k4;
 	
-	int j;
+	float matrix2[len];
+	matrix_var(matrix2, 0,0,len);
+	k1 = h*function(matrix1,matrix2,len,eqs);
+	
+	float matrix3[len];
+	matrix_var(matrix2,0.5*h,0.5*k1,len);
+	k2 = h*function(matrix1,matrix3,len, eqs);
+	
+	float matrix4[len];
+	matrix_var(matrix2,0.5*h,0.5*k2,len);
+	k3 = h*function(matrix1,matrix4,len, eqs);
+	
+	float matrix5[len];
+	matrix_var(matrix2, h,k3,len);
+	k4 = h*function(matrix1,matrix5,len, eqs);
+	
+
+	return (k1+2*k2+2*k3+k4)/6;	
+}
+
+void solution(float *matrix, float total_time, float h, float number){
 	
 	FILE *fpt;
-
-    
-    matrix_copy(elements,initial, number);
-    
+	
     // Create a file
     fpt = fopen("filename.csv", "w+");
-
-        	
-	for (j=0; j<=steps*time;j++){
+    
+    int j,k;
+	
+	for (j=0; j<=total_time;j++){
 		
 //		printf("%lf,%lf,%lf\n",x_10,y_10,y_20);	
         if (j%2==0){
-			fprintf(fpt,"%lf,%lf,%lf,%lf,%lf,%lf\n",elements[0],elements[1],elements[2],elements[3],elements[4],elements[5]);
+			fprintf(fpt,"%lf,%lf,%lf,%lf,%lf,%lf\n",matrix[0],matrix[1],matrix[2],matrix[3],matrix[4],matrix[5]);
 		}
 
 	    
 //		printf("%0.3lf,%0.3lf,%0.3lf\n",elements[0],elements[1],elements[3]);
-	
-		elements[1] = elements[1]+RK(h, elements, 0,number);
-		elements[0]	+= h;	
-
-		elements[3] = elements[3]+RK(h, elements, 1,number);
-		elements[2]	+= h;
-
-		elements[5] = elements[5]+RK(h, elements, 2,number);
-		elements[4]	+= h;		
+		for (k=0;k<=number/2;k++){
+				matrix[2*k+1] = matrix[2*k+1]+RK(h, matrix, k,number);
+				matrix[2*k]	+= h;	
+		}
 		
 
 //        }
     }
-
-    return 0;
+	return 0;
 }
