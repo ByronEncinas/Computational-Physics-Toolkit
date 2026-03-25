@@ -138,3 +138,98 @@ float rand_within(float low, float high) {
         return low + x * (high - low);
 }
 
+
+
+// This has to be delegated to its own function
+// it will return an array called polygon with edge type en>
+// populate_polygon_array(triangulation, bad_triangles);
+
+// REMOVE BAD TRIANGLES
+// rebuild_triangulation(triangulation, bad_triangles, coun>
+
+// RE-TRIANGULATE
+// re_triangulation(polygon, triangulation, count, p);
+
+void populate_polygon_array(const triangle *bad_tris, const int bad_count, edge *polygon) {
+
+	int poly_count = 0;
+	int shared = 0;
+
+        for (int i = 0; i < bad_count; i++)
+        {
+		triangle bti = bad_tris[i];
+
+		// each triangle type has 3 vertex types
+		// create edges of current triangle bt
+		edge e0 = init_edge(bti.v0, bti.v1);
+
+	        for (int j = 0; j < bad_count; j++)
+		{
+	                triangle btj = bad_tris[j];
+			// compare with other triangles, if they are the same, skip
+			if (equal_triangles(&bti, &btj)) {continue;}
+		}
+                edge e1 = init_edge(bti.v1, bti.v2);
+                edge e2 = init_edge(bti.v0, bti.v2);
+	}
+}
+
+/*  FOR EACH point P:
+
+    // --- FIND BAD TRIANGLES --- DONE!
+
+
+    // --- FIND BOUNDARY POLYGON ---
+    // an edge is on the boundary if it appears in
+    // exactly ONE bad triangle (not shared by two)
+    allocate polygon array of edges
+    poly_count = 0
+
+    for each triangle T in badTriangles:
+        for each edge E of T:                   ← 3 edges per triangle
+            shared = false
+            for each other triangle T2 in badTriangles:
+                if T2 has edge E:
+                    shared = true
+                    break
+            if not shared:
+                polygon[poly_count++] = E
+
+
+    // --- REMOVE BAD TRIANGLES ---
+    // you can't just free() individual entries from an array
+    // simplest approach: rebuild the array skipping bad ones
+    new_count = 0
+    for i in 0..count:
+        if triangles[i] is NOT in badTriangles:
+            triangles[new_count++] = triangles[i]
+    count = new_count
+
+
+    // --- RE-TRIANGULATE THE HOLE ---
+    for each edge E in polygon:
+        new_triangle = init_tri(E.v0, E.v1, P)
+        // check capacity before inserting
+        if count >= capacity:
+            capacity *= 2
+            realloc triangles
+        triangles[count++] = new_triangle
+
+*/
+
+int equal_triangles(const triangle *a, const triangle *b) {
+
+	// verify that both three coincide with compare_vtx()
+	int first        = compare_vtx(&a->v0, &b->v0) ||
+			   compare_vtx(&a->v0, &b->v1) ||
+        	           compare_vtx(&a->v0, &b->v2);
+
+	int second       = compare_vtx(&a->v1, &b->v0) ||
+                	   compare_vtx(&a->v1, &b->v1) ||
+	                   compare_vtx(&a->v1, &b->v2);
+
+	int third        = compare_vtx(&a->v2, &b->v0) ||
+        	           compare_vtx(&a->v2, &b->v1) ||
+                	   compare_vtx(&a->v2, &b->v2);
+
+	return first && second && third;}
