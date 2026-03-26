@@ -138,6 +138,23 @@ float rand_within(float low, float high) {
         return low + x * (high - low);
 }
 
+int equal_triangles(const triangle *a, const triangle *b) {
+
+        // verify that both three coincide with compare_vtx()
+        int first        = compare_vtx(&a->v0, &b->v0) ||
+                           compare_vtx(&a->v0, &b->v1) ||
+                           compare_vtx(&a->v0, &b->v2);
+
+        int second       = compare_vtx(&a->v1, &b->v0) ||
+                           compare_vtx(&a->v1, &b->v1) ||
+                           compare_vtx(&a->v1, &b->v2);
+
+        int third        = compare_vtx(&a->v2, &b->v0) ||
+                           compare_vtx(&a->v2, &b->v1) ||
+                           compare_vtx(&a->v2, &b->v2);
+
+        return first && second && third;}
+
 
 
 // This has to be delegated to its own function
@@ -216,20 +233,3 @@ void populate_polygon_array(const triangle *bad_tris, const int bad_count, edge 
         triangles[count++] = new_triangle
 
 */
-
-int equal_triangles(const triangle *a, const triangle *b) {
-
-	// verify that both three coincide with compare_vtx()
-	int first        = compare_vtx(&a->v0, &b->v0) ||
-			   compare_vtx(&a->v0, &b->v1) ||
-        	           compare_vtx(&a->v0, &b->v2);
-
-	int second       = compare_vtx(&a->v1, &b->v0) ||
-                	   compare_vtx(&a->v1, &b->v1) ||
-	                   compare_vtx(&a->v1, &b->v2);
-
-	int third        = compare_vtx(&a->v2, &b->v0) ||
-        	           compare_vtx(&a->v2, &b->v1) ||
-                	   compare_vtx(&a->v2, &b->v2);
-
-	return first && second && third;}

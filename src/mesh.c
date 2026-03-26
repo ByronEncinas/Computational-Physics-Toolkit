@@ -75,7 +75,7 @@ output:
 	}
 }
 
-void mesh1d(float *nodes, int *elems, float *h, int n, int m) {
+void linear_mesh(float *nodes, int *elems, float *h, int n, int m) {
 	/*
 	mesh1d: this functions generates a 1D mesh of nodes and elements.
 
@@ -119,7 +119,7 @@ int main() {
         float h[] = {0.0, 0.2, 0.3, 0.4, 0.5, 0.4, 0.3, 0.2, 0.5};
         int m = 0;
 
-        mesh1d(nodes, elems, h, n, 1);
+        linear_mesh(nodes, elems, h, n, 1);
 
 
         // print nodes
