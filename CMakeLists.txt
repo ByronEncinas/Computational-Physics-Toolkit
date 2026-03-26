@@ -26,7 +26,7 @@ if(SOURCES)
 
     # Add the include/ directory so headers can be found
     target_include_directories(cpt PUBLIC include)
-
+    target_link_libraries(cpt m)
 endif()
 
 # Build the executable program from main.c
@@ -38,5 +38,6 @@ target_include_directories(main PUBLIC include)
 # If the shared library was created, link it to the executable
 # so main can call functions from the library
 if(SOURCES)
-    target_link_libraries(main PRIVATE cpt)
+    target_link_libraries(main PRIVATE cpt m)
+    target_link_libraries(cpt m)
 endif()
