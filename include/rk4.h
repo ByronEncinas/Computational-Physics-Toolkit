@@ -1,6 +1,8 @@
 #ifndef RK4
 #define RK4
 
+#include <stdio.h>
+
 //This function takes a given matrix, and returns another one. 
 //The first matrix in this code is the one where the initial conditions values are going to be stored.
 float matrix_copy(float *matrix1,float *matrix2, int len){
@@ -106,7 +108,7 @@ void solution(float *matrix, float total_time, float h, float number, float *con
 		
 //		printf("%lf,%lf,%lf\n",x_10,y_10,y_20);	
         if (j%2==0){
-			fprintf(fpt,"%lf,%lf,%lf,%lf,%lf,%lf\n",matrix[0],matrix[1],matrix[3],matrix[5]); //Printing the values
+			fprintf(fpt,"%lf,%lf,%lf,%lf\n",matrix[0],matrix[1],matrix[3],matrix[5]); //Printing the values
 		}
 
 	    //		printf("%0.3lf,%0.3lf,%0.3lf\n",elements[0],elements[1],elements[3]);

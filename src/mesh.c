@@ -1,4 +1,4 @@
-#include "geom.h" // contains the vertex, edge and triangle structs
+#include "../include/geom.h" // contains the vertex, edge and triangle structs
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
