@@ -14,7 +14,7 @@ int main(){
 
     printf("%f,%f,%f", c.data[0], c.data[1], c.data[2]);
     
-
+//Eliminate this comment later
     vadd(&c, &a, &b);
     printf("%f,%f,%f", c.data[0], c.data[1], c.data[2]);
 
