@@ -55,6 +55,12 @@ output:
 			{
 				bad_triangles[bad_count++] = t;
 			}
+
+		// FIND BOUNDARY POLYGON
+
+		unsigned short poly_count = 0;
+		
+
 		// This has to be delegated to its own function
 		// it will return an array called polygon with edge type entries
 		// populate_polygon_array(triangulation, bad_triangles);
@@ -108,43 +114,5 @@ void linear_mesh(float *nodes, int *elems, float *h, int n, int m) {
 }
 
 void mesh_from_file(){
-	printf("Placeholder Text");
+	printf("Placeholder Text\n");
 }
-
-int main() {
-
-        int n = 10;
-        float *nodes = malloc(n * sizeof(float)); // in heap
-        int *elems = malloc(n * 2 * sizeof(int));
-        float h[] = {0.0, 0.2, 0.3, 0.4, 0.5, 0.4, 0.3, 0.2, 0.5};
-        int m = 0;
-
-        linear_mesh(nodes, elems, h, n, 1);
-
-
-        // print nodes
-        printf("nodes:\n");
-
-        for (int i = 0; i < n; i++)
-	{
-                printf("  nodes[%d] = %f\n", i, nodes[i]);
-        }
-
-        // print elems as pairs
-        printf("elems:\n");
-
-        for (int i = 0; i < n-1; i++)
-	{
-                printf("  elem[%d] = [%d, %d]\n", i, elems[2*i], elems[2*i+1]);
-        }
-
-        free(nodes);
-        free(elems);
-
-
-        for (int i = 0; i < 100; i++)
-	{
-                printf("%f\n", rand_within(0.0, 1.0));
-	}
-        return 0;
-	}
