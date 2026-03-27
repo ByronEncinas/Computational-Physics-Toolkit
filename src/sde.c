@@ -135,5 +135,4 @@ void solution(float *matrix, float total_time, float h, float number){
 
 //        }
     }
-	return 0;
 }
