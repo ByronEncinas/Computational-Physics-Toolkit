@@ -55,12 +55,9 @@ output:
 			{
 				bad_triangles[bad_count++] = t;
 			}
-
-		// FIND BOUNDARY POLYGON
-
-		unsigned short poly_count = 0;
-		
-
+<<<<<<< HEAD
+=======
+>>>>>>> main
 		// This has to be delegated to its own function
 		// it will return an array called polygon with edge type entries
 		// populate_polygon_array(triangulation, bad_triangles);
@@ -114,5 +111,7 @@ void linear_mesh(float *nodes, int *elems, float *h, int n, int m) {
 }
 
 void mesh_from_file(){
+<<<<<<< HEAD
 	printf("Placeholder Text\n");
 }
+>>>>>>> main
