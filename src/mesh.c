@@ -1,4 +1,4 @@
-#include "geom.h" // contains the vertex, edge and triangle structs
+#include "../include/geom.h" // contains the vertex, edge and triangle structs
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -110,4 +110,3 @@ void linear_mesh(float *nodes, int *elems, float *h, int n, int m) {
 void mesh_from_file(){
 	printf("Placeholder Text");
 }
-

@@ -1,4 +1,5 @@
-#include "geom.h" // contains the vertex, edge and triangle structs
+#include "../include/geom.h" // contains the vertex, edge and triangle structs
+#include "../include/mesh.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,7 +35,7 @@ int main() {
         free(elems);
 
 
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i < 10; i++)
         {
                 printf("%f\n", rand_within(0.0, 1.0));
         }
