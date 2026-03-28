@@ -1,10 +1,8 @@
-#include<stdio.h>
-#include<math.h>
 #include "../include/rk4.h"
 
 int main(){
 
-// Defining parameters for the SDE
+	// Defining parameters for the SDE
     int number,i, eqs;
     number = 7; // Number is equal to twice the number of coupled equations.
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -56,9 +54,8 @@ int main(){
     
     matrix_copy(elements,initial, number);
     
-    solution(elements, steps*time, h, number,constants1);
-    
-    
+    solution(elements, steps*time, h, number, constants1);
+	// solution(*matrix, total_time, h, number, *consts)
     return 0;   
     
 }
