@@ -167,10 +167,13 @@ int equal_triangles(const triangle *a, const triangle *b) {
 // RE-TRIANGULATE
 // re_triangulation(polygon, triangulation, count, p);
 
-void populate_polygon_array(const triangle *bad_tris, const int bad_count, edge *polygon) {
+int populate_polygon_array(const triangle *bad_tris, const int bad_count, edge *polygons) {
 
 	int poly_count = 0;
-	int shared = 0;
+	int is_shared = 0;
+
+	// each triangle has 3 edges, and I have `bad_count` triangles
+	//edge *polygons = malloc( 3 * bad_count * sizeof(edge));
 
         for (int i = 0; i < bad_count; i++)
         {
@@ -178,6 +181,7 @@ void populate_polygon_array(const triangle *bad_tris, const int bad_count, edge 
 
 		// each triangle type has 3 vertex types
 		// create edges of current triangle bt
+		is_shared = 0;
 		edge e0 = init_edge(bti.v0, bti.v1);
 
 	        for (int j = 0; j < bad_count; j++)
@@ -185,51 +189,82 @@ void populate_polygon_array(const triangle *bad_tris, const int bad_count, edge 
 	                triangle btj = bad_tris[j];
 			// compare with other triangles, if they are the same, skip
 			if (equal_triangles(&bti, &btj)) {continue;}
+
+			// ok sure, triangles bti and btj are not the same
+			// does btj has e0?
+			edge ej0 = init_edge(btj.v0, btj.v1);
+                        edge ej1 = init_edge(btj.v0, btj.v2);
+                        edge ej2 = init_edge(btj.v2, btj.v1);
+
+			is_shared = compare_edg(e0, ej0) ||
+				    compare_edg(e0, ej1) ||
+				    compare_edg(e0, ej2);
+
+
+			if (is_shared) {break;}
 		}
+
+                if (!is_shared)
+                {
+                polygons[poly_count++] = e0;
+                }
+
+                is_shared = 0;
                 edge e1 = init_edge(bti.v1, bti.v2);
+
+                for (int j = 0; j < bad_count; j++)
+                {
+                        triangle btj = bad_tris[j];
+                        // compare with other triangles, if they are the same, skip
+                        if (equal_triangles(&bti, &btj)) {continue;}
+
+                        // ok sure, triangles bti and btj are not the same
+                        // does btj has e0?
+                        edge ej0 = init_edge(btj.v0, btj.v1);
+                        edge ej1 = init_edge(btj.v0, btj.v2);
+                        edge ej2 = init_edge(btj.v2, btj.v1);
+
+                        is_shared = compare_edg(e1, ej0) ||
+                                        compare_edg(e1, ej1) ||
+                                        compare_edg(e1, ej2);
+
+                        if (is_shared) {break;}
+                }
+                if (!is_shared)
+                {
+                polygons[poly_count++] = e1;
+                }
+
+                is_shared = 0;
                 edge e2 = init_edge(bti.v0, bti.v2);
+
+                for (int j = 0; j < bad_count; j++)
+                {
+                        triangle btj = bad_tris[j];
+                        // compare with other triangles, if they are the same, skip
+                        if (equal_triangles(&bti, &btj)) {continue;}
+
+                        // ok sure, triangles bti and btj are not the same
+                        // does btj has e0?
+                        edge ej0 = init_edge(btj.v0, btj.v1);
+                        edge ej1 = init_edge(btj.v0, btj.v2);
+                        edge ej2 = init_edge(btj.v2, btj.v1);
+
+                        is_shared = compare_edg(e2, ej0) ||
+                                        compare_edg(e2, ej1) ||
+                                        compare_edg(e2, ej2);
+
+                        if (is_shared) {break;}
+                }
+
+                if (!is_shared)
+                {
+                polygons[poly_count++] = e2;
+                }
 	}
+	return poly_count;
 }
 
-/*  FOR EACH point P:
-
-    // --- FIND BAD TRIANGLES --- DONE!
-
-
-    // --- FIND BOUNDARY POLYGON ---
-    // an edge is on the boundary if it appears in
-    // exactly ONE bad triangle (not shared by two)
-    allocate polygon array of edges
-    poly_count = 0
-
-    for each triangle T in badTriangles:
-        for each edge E of T:                   ← 3 edges per triangle
-            shared = false
-            for each other triangle T2 in badTriangles:
-                if T2 has edge E:
-                    shared = true
-                    break
-            if not shared:
-                polygon[poly_count++] = E
-
-
-    // --- REMOVE BAD TRIANGLES ---
-    // you can't just free() individual entries from an array
-    // simplest approach: rebuild the array skipping bad ones
-    new_count = 0
-    for i in 0..count:
-        if triangles[i] is NOT in badTriangles:
-            triangles[new_count++] = triangles[i]
-    count = new_count
-
-
-    // --- RE-TRIANGULATE THE HOLE ---
-    for each edge E in polygon:
-        new_triangle = init_tri(E.v0, E.v1, P)
-        // check capacity before inserting
-        if count >= capacity:
-            capacity *= 2
-            realloc triangles
-        triangles[count++] = new_triangle
-
-*/
+void write_mesh() {
+	printf("Man, I wish this thing could write itself xd");
+}

@@ -39,5 +39,8 @@ int main() {
         {
                 printf("%f\n", rand_within(0.0, 1.0));
         }
+
+	mesh_from_file();
+
         return 0;
         }
