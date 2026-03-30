@@ -5,18 +5,18 @@
 #include <stdlib.h>
 
 #define PI        3.141592654
-#define TOLERANCE 1e-6f
+#define TOLERANCE 1e-8f
 
 //something something... we win
 
 typedef struct vertex {
     float x, y;
-    int (*compare_vtx)(const struct vertex *self, const struct vertex *other);
+    int (*compare)(const struct vertex *self, const struct vertex *other);
 } vertex;
 
 typedef struct edge {
     vertex v0, v1;
-    int (*compare_edg)(const struct edge *self, const struct edge *other);
+    int (*compare)(const struct edge *self, const struct edge *other);
 } edge;
 
 typedef struct triangle {
@@ -38,7 +38,10 @@ int      compare_edg       (const edge *self, const edge *other);
 triangle super_triangle    (const float *points, int n);
 float    rand_within       (float low, float high);
 
-void populate_polygon_array(const triangle *bad_tris, const int bad_count, edge *polygons);
+int populate_polygon_array(const triangle *bad_tris, const int bad_count, edge *polygons);
 int  equal_triangles       (const triangle *a, const triangle *b);
+
+float* generate_random_grid(float low, float high, int n);
+float* generate_uniform_grid(float low, float high, int n);
 
 #endif

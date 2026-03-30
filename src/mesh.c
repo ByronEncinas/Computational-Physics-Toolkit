@@ -3,6 +3,41 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+int write_mesh_to_file(const triangle *mesh, const int mesh_size) {
+
+    FILE *fptr = fopen("mesh.txt", "w");
+
+    if (fptr == NULL) { fprintf(stderr, "failed to open file\n"); return 1; }
+
+    for (int l = 0; l < mesh_size; l++)
+    {
+	fprintf(fptr, "triangle %u:\n", l);
+	fprintf(fptr, "  v0: (%.5f, %.5f)\n", mesh[l].v0.x, mesh[l].v0.y);
+	fprintf(fptr, "  v1: (%.5f, %.5f)\n", mesh[l].v1.x, mesh[l].v1.y);
+	fprintf(fptr, "  v2: (%.5f, %.5f)\n", mesh[l].v2.x, mesh[l].v2.y);
+    }
+    fflush(fptr);
+    fclose(fptr);
+    return 0;
+}
+
+int read_mesh_to_file(const triangle *mesh, const int mesh_size) {
+
+    FILE *fptr = fopen("mesh.txt", "w");
+
+    if (fptr == NULL) { fprintf(stderr, "failed to open file\n"); return 1; }
+
+    for (int l = 0; l < mesh_size; l++)
+    {
+        fprintf(fptr, "%u (%.5f, %.5f)  (%.5f, %.5f)  (%.5f, %.5f)\n",
+                        l, mesh[l].v0.x, mesh[l].v0.y,
+                           mesh[l].v1.x, mesh[l].v1.y,
+                           mesh[l].v2.x, mesh[l].v2.y);    }
+    fflush(fptr);
+    fclose(fptr);
+    return 0;
+}
+
 void bowyer_watson_mesh(float *points, int n, triangle *mesh, int *out_count) {
 /*	2D tesselation algorithm
 
@@ -116,7 +151,6 @@ output:
 			}
 		}
 
-		tri_count = tri_count - bad_count;
 
 		// --- FIND BOUNDARY POLYGON ---
 
@@ -145,7 +179,6 @@ output:
 	                        if (equal_triangles(&bt, &gt))
 				{
 					is_gt_in_bd = 1;
-					tri_count = tri_count - 1;
 					break;
 				}
 
@@ -159,7 +192,6 @@ output:
                         //printf("  v2: (%.2f, %.2f)\n", gt.v2.x, gt.v2.y);
 
                         rebuilt[rebuilt_count++] = gt;
-			tri_count = tri_count + 1;
                 }
 
 		//free(triangulation);
@@ -185,17 +217,15 @@ output:
                 //printf("  v1: (%.2f, %.2f)\n", mesh[count].v1.x, mesh[count].v1.y);
                 //printf("  v2: (%.2f, %.2f)\n", triangulation[count].v2.x, triangulation[count].v2.y);
 		}
-		tri_count = tri_count + good_count;
 
                 //printf("mesh size: %d:\n", tri_count);
 	}
 
 	// --- CLEANUP ---
 	// if triangle shares vertex with sup_triangle, then delete
-	triangle *rebuilt = realloc(rebuilt, good_count * sizeof(triangle));
 	rebuilt_count = 0;
 	mesh_count = 0;
-
+	triangle *rebuilt = malloc(good_count * sizeof(triangle));
 	for (unsigned int each_tri = 0; each_tri < good_count; each_tri++)
 	{
 		triangle t = triangulation[each_tri];
@@ -223,9 +253,9 @@ output:
 	free(poly_arr);
 	free(triangulation);
 	mesh = realloc(mesh, mesh_count * sizeof(triangle)); 
+        free(rebuilt);
 	*out_count = mesh_count;
-        //free(rebuilt);
-	*out_count = mesh_count;
+	write_mesh_to_file(mesh, mesh_count);
 }
 
 void linear_mesh(float *nodes, int *elems, float *h, int n, int m) {
@@ -260,94 +290,3 @@ void linear_mesh(float *nodes, int *elems, float *h, int n, int m) {
 	}
 }
 
-/*
-void read_inp(float *nodes, float *elems, FILE *fptr) {
-    
-    int ids[4];
-    double x[4], y[4], z[4];
-    char buff[256];
-
-    int count = 0;    
-    while (fgets(buff, sizeof(buff), fptr) != NULL) {
-        if (sscanf(buff, " %d, %lf, %lf, %lf",
-                   &ids[count], &x[count], &y[count], &z[count]) == 4) {
-            count++;
-        }
-    }
-    // now loop over what you parsed
-    for (int i = 0; i < count; i++) {
-        printf("Node %d: (%.1f, %.1f, %.1f)\n", ids[i], x[i], y[i], z[i]);
-    }    
-}
-
-
-int mesh_from_file() {
-
-    printf("Supported Formats:\n"
-           "4 ------- 3\n"
-           "|  \\  T2 |\n"
-           "| T1  \\  |\n"
-           "1 ------- 2\n\n");
-
-    FILE *fptr = fopen("file.txt", "r");
-    char buff[256];
-
-    if (fptr == NULL) {
-        printf("File not opened!\n");
-        return 1;
-    }
-
-    float *nodes = malloc(4 * sizeof(float)); // ID, X, Y, Z
-    float *elems = malloc(4 * sizeof(float)); // ID, I, J, K
-
-    int line_count = 0;
-    int node_count = 0;
-    int elem_count = 0;
-    
-    char NODE_FLAG[10];
-    char ELEM_FLAG[10];
-    //read_inp(nodes, elems, buff, fptr);        
-    while (fgets(buff, sizeof(buff), fptr) != NULL)
-    {
-        if (line_count == 0) {
-            
-            if (strstr(buff, "*NODE"))
-            {
-            char type = 'N';
-            strcpy(ELEM_FLAG, "*NODE");
-            strcpy(ELEM_FLAG, "*ELEMENT");
-            } 
-            else if (strstr(buff, "GRID" ))
-            {
-            char type = 'G'; // which file we'll read
-            strcpy(ELEM_FLAG, "GRID");
-            strcpy(ELEM_FLAG,"CTRIA");
-            }
-        } 
-        if (!strstr(buff, ELEM_FLAG) && line_count != 0)
-        {// if buff is found after NODE_FLAG
-            
-            printf("%s", buff);
-            node_count++;
-        }
-
-        line_count++;
-        
-        if (strstr(buff, ELEM_FLAG)) 
-        {
-            break;
-        }
-    }
-    elem_count = line_count - node_count;
-    printf("\n#Lines, #Nodes, #Elems (%i, %i, %i)\n", line_count, node_count, elem_count);
-
-    float *nodes = malloc(4 * sizeof(float)); // ID, X, Y, Z
-    float *elems = malloc(4 * sizeof(float)); // ID, I, J, K
-
-
-    fclose(fptr);
-    return 0;
-
-}
-
-*/

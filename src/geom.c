@@ -1,10 +1,8 @@
 #include "../include/geom.h"
 #include <math.h>
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#define PI 3.141592654
-#define TOLERANCE 1e-6f
 
 vertex init_vertex(float x, float y) {
         vertex vtx;           // declares a matrix variable on the stack
@@ -271,3 +269,61 @@ void write_mesh() {
 	printf("Man, I wish this thing could write itself xd");
 }
 */
+float* generate_random_grid(float low, float high, int n) {
+
+        float *points =  malloc(2 * n * sizeof(float)); // 2*n only support 2D
+	srand(time(NULL));
+        for (unsigned int i = 0; i < n; i++)
+	{
+                points[2*i]     = rand_within(low, high);
+                points[2*i + 1] = rand_within(low, high);
+        }
+	return points;
+}
+
+float* generate_uniform_grid(float low, float high, int n) {
+	// hexagonal grid
+
+	// it always generates form (0,0)
+        float *points =  malloc(2 * n * n * sizeof(float)); // 2*n only support 2D
+	float sep_x = (high-low)/n;
+        float sep_y = sep_x * sqrtf(3.0f)/2.0f;
+	int idx = 0;
+	float height = 0;
+	float disp =0 ;
+	/*
+	i=0
+	j=0, 1/n, 2/n, ..., 1
+
+	i=1/n
+        j=0, 1/n, 2/n, ..., 1
+
+	i=2/n
+        j=0, 1/n, 2/n, ..., 1
+	*/
+
+        for (unsigned int i = 0; i < n; i++) // row
+	{
+	height = i*sep_y;
+
+	        for (unsigned int j = 0; j < n; j++) // column
+		{
+                        disp = j * sep_x;
+			if (i % 2 == 1)
+			{
+			points[idx] = sep_x/2.0f + disp;
+			}
+			else
+			{
+			points[idx] = disp;
+			}
+
+        	        points[idx+1] = height;
+
+			idx++;
+			idx++;
+        	}
+        }
+	return points;
+}
+
