@@ -11,12 +11,12 @@
 
 typedef struct vertex {
     float x, y;
-    int (*compare)(const struct vertex *self, const struct vertex *other);
+    int (*compare_vtx)(const struct vertex *self, const struct vertex *other);
 } vertex;
 
 typedef struct edge {
     vertex v0, v1;
-    int (*compare)(const struct edge *self, const struct edge *other);
+    int (*compare_edg)(const struct edge *self, const struct edge *other);
 } edge;
 
 typedef struct triangle {
@@ -38,5 +38,7 @@ int      compare_edg       (const edge *self, const edge *other);
 triangle super_triangle    (const float *points, int n);
 float    rand_within       (float low, float high);
 
-#endif
+void populate_polygon_array(const triangle *bad_tris, const int bad_count, edge *polygons);
+int  equal_triangles       (const triangle *a, const triangle *b);
 
+#endif

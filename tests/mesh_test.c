@@ -1,10 +1,38 @@
 #include "../include/geom.h" // contains the vertex, edge and triangle structs
 #include "../include/mesh.h"
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-int main() {
+
+void try_bw_mesh() {
+
+        unsigned int n = 1000;
+	unsigned int mesh_size;
+
+        float points[2*n]; // 2*n
+
+        triangle *mesh = malloc(2 * n * sizeof(triangle));
+
+        for (unsigned int i = 0; i < n; i++) {
+                points[2*i]     = rand_within(0, 10);
+                points[2*i + 1] = rand_within(0, 10);
+		//printf("  p%d: (%.2f, %.2f)\n", i, points[2*i], points[2*i+1]);
+        }
+	// bowyer_watson_mesh(float *points, int n, triangle *triangle_mesh, int out_count)
+
+        bowyer_watson_mesh(points, n, mesh, &mesh_size);
+
+	for (unsigned int i=0; i < mesh_size; i++)
+	{
+		printf("\ntriangle %d:\n", i);
+		printf("  v0: (%.2f, %.2f)\n", mesh[i].v0.x, mesh[i].v0.y);
+		printf("  v1: (%.2f, %.2f)\n", mesh[i].v1.x, mesh[i].v1.y);
+		printf("  v2: (%.2f, %.2f)", mesh[i].v2.x, mesh[i].v2.y);
+	}
+        printf("\npoint %d\n", mesh_size-1);
+}
+
+void try_linear_mesh() {
 
         int n = 10;
         float *nodes = malloc(n * sizeof(float)); // in heap
@@ -13,7 +41,6 @@ int main() {
         int m = 0;
 
         linear_mesh(nodes, elems, h, n, 1);
-
 
         // print nodes
         printf("nodes:\n");
@@ -39,8 +66,11 @@ int main() {
         {
                 printf("%f\n", rand_within(0.0, 1.0));
         }
+}
 
-	mesh_from_file();
+int main() {
+
+        try_bw_mesh();
 
         return 0;
-        }
+}

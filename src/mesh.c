@@ -1,10 +1,9 @@
 #include "../include/geom.h" // contains the vertex, edge and triangle structs
-#include <math.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-void bowyer_watson_mesh(float *points, int n) {
+void bowyer_watson_mesh(float *points, int n, triangle *mesh, int *out_count) {
 /*	2D tesselation algorithm
 
 paramters:
@@ -16,7 +15,16 @@ output:
 	...
 	*/
 	// initializes super triangle
-	triangle sup_tri = super_triangle( points, n);
+	triangle sup_tri = super_triangle(points, n);
+
+	printf("\n  (%.2f, %.2f)\n", sup_tri.v0.x, sup_tri.v0.y);     // 2 decimal places
+	printf(
+    "            /\\\n"
+    "           /  \\\n"
+    "          /    \\\n"
+    "         /      \\\n"
+    "        /________\\\n\n");
+        printf("(%.2f, %.2f)   (%.2f, %.2f)\n", sup_tri.v1.x, sup_tri.v1.y, sup_tri.v2.x, sup_tri.v2.y);
 
 	// how can i fiture out the max number of triangles,
 	// that can be formed from n points in a form of a mesh?
@@ -46,125 +54,178 @@ output:
 	  - https://math.stackexchange.com/questions/1286800/euler-formula-for-planar-graphs?utm_source=chatgpt.com
 	*/
 
-        int max_triangle_size = 2 * n;
-        int max_edge_size     = 3 * n;
-	int count             = 1;
-	int rebuilt_count     = 0;
-	int poly_count        = 0;
-	int is_shared         = 0;
-	int bad_count         = 0;
-        int is_gt_in_bd       = 0;
+        unsigned int max_triangle_size = 2 * 2 * n;
+        unsigned int max_edge_size     = 2 * 3 * n;
+        unsigned int good_count        = 1;
+        unsigned int rebuilt_count     = 0;
+	unsigned int poly_count        = 0;
+        unsigned int is_shared         = 0;
+        unsigned int bad_count         = 0;
+        unsigned int is_gt_in_bd       = 0;
+        unsigned int mesh_count        = 0;
+
+	unsigned int tri_count         = 1;   // how many triangles are USED
+	unsigned int tri_capacity      = max_triangle_size;  // how many are ALLOCATED
+
+	printf("max_triangle_size : %u\n", max_triangle_size);
+	printf("max_edge_size     : %u\n", max_edge_size);
+	printf("count             : %u\n", good_count);
+	printf("rebuilt_count     : %u\n", rebuilt_count);
+	printf("poly_count        : %u\n", poly_count);
+	printf("is_shared         : %u\n", is_shared);
+	printf("bad_count         : %u\n", bad_count);
+	printf("is_gt_in_bd       : %u\n", is_gt_in_bd);
 
 	// initialize output triangulation
-	triangle *triangulation = malloc( max_triangle_size * sizeof(triangle)); // whatever the size needed to store a type triangle, plus the  number of triangles ot allocate
+	triangle *triangulation = calloc(max_triangle_size, sizeof(triangle));
+	triangle *bad_triangles = calloc(max_triangle_size, sizeof(triangle)); // or 1 if you really need only 1
+	edge     *poly_arr      = calloc(max_edge_size    , sizeof(edge    ));
 
-        triangle *bad_triangles = malloc ( 1 * sizeof(triangle)) ;
-
-        edge *poly_arr = malloc( max_edge_size * sizeof(edge));
-
-        triangulation[0] = sup_tri;
+	triangulation[0] = sup_tri;
 
 	// points contains 3*n values
-	for (int i = 0; i < n; i++)
+	for (unsigned int i = 0; i < n; i++)
 
 	{
-		// count of bad triangles in this instance of the loop
                 bad_count = 0;
 
 		// convert point p into vertex type
-                vertex p = init_vertex(points[3*i], points[3*i + 1]);
+                vertex p = init_vertex(points[2*i], points[2*i + 1]);
 
-		// allocate in stack for faster access
-		bad_triangles = realloc(bad_triangles, max_triangle_size * sizeof(triangle));
+                printf("#(index of point p)  : %u\n", i);
+                printf("#(bad triangles)     : %u\n", bad_count);
+                printf("(%.2f, %.2f)\n", p.x, p.y);
 
-		// FIND BAD TRIANGLES--------------------
-		// append_bad_triangle_lists(triangulation, count)
+		// allocate in heap for dynamic resizing
+		free(bad_triangles);
+		bad_triangles = calloc(max_triangle_size, sizeof(triangle));
 
-		for (int each_tri = 0; each_tri < count; each_tri++)
+		// --- FIND BAD TRIANGLES ---
+		for (unsigned int each_tri = 0; each_tri < good_count; each_tri++)
 		{
-
 			triangle t = triangulation[each_tri];
 
 			if (in_circumcircle(&t, &p))
 			{
 				bad_triangles[bad_count++] = t;
+
+                        //printf("FOUND BAD TRIANGLES %d:\n", bad_count);
+                        //printf("  v0: (%.2f, %.2f)\n", t.v0.x, t.v0.y);
+                        //printf("  v1: (%.2f, %.2f)\n", t.v1.x, t.v1.y);
+                        //printf("  v2: (%.2f, %.2f)\n", t.v2.x, t.v2.y);
 			}
 		}
 
+		tri_count = tri_count - bad_count;
+
 		// --- FIND BOUNDARY POLYGON ---
+
 		free(poly_arr);
-		poly_arr = malloc( 3 * bad_count * sizeof(edge));
-
-		// populate_polygon_array(*bad_tris, bad_count, *polygons)
-
+		poly_arr = malloc(3 * bad_count * sizeof(edge));
 		poly_count = populate_polygon_array(bad_triangles, bad_count, poly_arr);
 
+                //printf("poly_count is: %u\n", poly_count);
+
 		// --- REMOVE BAD TRIANGLES ---
-		triangle *rebuilt = malloc(max_triangle_size * sizeof(triangle)); // whatever the size nee>
+		triangle *rebuilt = calloc(max_triangle_size, sizeof(triangle)); // whatever the size nee>
 		rebuilt_count = 0; // reasign
 
 		// loop over triangulation
-                for (int each_tri = 0; each_tri < count; each_tri++)
+                for (unsigned int each_tri = 0; each_tri < good_count; each_tri++)
                 {
 			// compare elements of triangulation with bad_triangles
 			is_gt_in_bd = 0;
                         triangle gt = triangulation[each_tri];
 
-	                for (int each_trj = 0; each_trj < bad_count; each_trj++)
+	                for (unsigned int each_trj = 0; each_trj < bad_count; each_trj++)
 			{
 				triangle bt = bad_triangles[each_trj];
 				// if gt and bt are similar, then bad_triangle in triangulation,
 				// gt is not useful
-	                        if (equal_triangles(&bt, &gt)) {is_gt_in_bd = 1; break;}
+	                        if (equal_triangles(&bt, &gt))
+				{
+					is_gt_in_bd = 1;
+					tri_count = tri_count - 1;
+					break;
+				}
 
 			}
-			if (is_gt_in_bd) {continue; }
+			if (is_gt_in_bd) {continue;}
+
+                	//printf("good triangle? yes - %d:\n", rebuilt_count);
+                        //printf("REMOVE BAD TRIANGLES %d:\n", each_tri);
+                        //printf("  v0: (%.2f, %.2f)\n", gt.v0.x, gt.v0.y);
+                        //printf("  v1: (%.2f, %.2f)\n", gt.v1.x, gt.v1.y);
+                        //printf("  v2: (%.2f, %.2f)\n", gt.v2.x, gt.v2.y);
 
                         rebuilt[rebuilt_count++] = gt;
+			tri_count = tri_count + 1;
                 }
-                free(bad_triangles);
-		free(triangulation);
-		triangulation = malloc(rebuilt_count * sizeof(triangle));
+
+		//free(triangulation);
+		triangulation = realloc(triangulation, (poly_count + rebuilt_count) * sizeof(triangle));
+
+                //printf("mesh size: %d:\n", tri_count);
+
 		memcpy(triangulation, rebuilt, rebuilt_count * sizeof(triangle));
-		memcpy(&count, &rebuilt_count, sizeof(int));
-		free(rebuilt);
+		good_count = rebuilt_count;
+		//free(rebuilt);
 
 		// --- RE-TRIANGULATE THE HOLE ---
 		// append to triangulation new triangles
-		for (int each_edg = 0; each_edg < poly_count; each_edg++)
+		for (unsigned int each_edg = 0; each_edg < poly_count; each_edg++)
 		{
 			edge edge_i = poly_arr[each_edg];
 			triangle new_tri = init_tri(edge_i.v0, edge_i.v1, p);
-			triangulation[count++] = new_tri;
-		}
+			triangulation[good_count++] = new_tri;
 
-                free(poly_arr);
-	} // OMG loop for each point just ended? damnit, that was long!
+		//printf("good triangles -> %d", good_count);
+                //printf("triangle %d:\n", count);
+                //printf("  v0: (%.2f, %.2f)\n", mesh[count].v0.x, mesh[count].v0.y);
+                //printf("  v1: (%.2f, %.2f)\n", mesh[count].v1.x, mesh[count].v1.y);
+                //printf("  v2: (%.2f, %.2f)\n", triangulation[count].v2.x, triangulation[count].v2.y);
+		}
+		tri_count = tri_count + good_count;
+
+                //printf("mesh size: %d:\n", tri_count);
+	}
+
 	// --- CLEANUP ---
 	// if triangle shares vertex with sup_triangle, then delete
-	triangle *rebuilt = malloc(count * sizeof(triangle));
+	triangle *rebuilt = realloc(rebuilt, good_count * sizeof(triangle));
 	rebuilt_count = 0;
+	mesh_count = 0;
 
-	for (int each_tri = 0; each_tri < count; each_tri++)
+	for (unsigned int each_tri = 0; each_tri < good_count; each_tri++)
 	{
 		triangle t = triangulation[each_tri];
 		// match all possible combinations of vertex between t and sup_tri
-		is_shared = compare_vtx(sup_tri.v0, t.v0) ||
-			    compare_vtx(sup_tri.v1, t.v0) ||
-                            compare_vtx(sup_tri.v2, t.v0) ||
-                            compare_vtx(sup_tri.v0, t.v1) ||
-                            compare_vtx(sup_tri.v1, t.v1) ||
-                            compare_vtx(sup_tri.v2, t.v1) ||
-                            compare_vtx(sup_tri.v0, t.v2) ||
-                            compare_vtx(sup_tri.v1, t.v2) ||
-                            compare_vtx(sup_tri.v2, t.v2);
+		is_shared = compare_vtx(&sup_tri.v0, &t.v0) ||
+			    compare_vtx(&sup_tri.v1, &t.v0) ||
+                            compare_vtx(&sup_tri.v2, &t.v0) ||
+                            compare_vtx(&sup_tri.v0, &t.v1) ||
+                            compare_vtx(&sup_tri.v1, &t.v1) ||
+                            compare_vtx(&sup_tri.v2, &t.v1) ||
+                            compare_vtx(&sup_tri.v0, &t.v2) ||
+                            compare_vtx(&sup_tri.v1, &t.v2) ||
+                            compare_vtx(&sup_tri.v2, &t.v2);
 		if (!is_shared) // if not shared, save triangle
 		{
-		rebuilt[rebuilt_count++] = t;
+		mesh[mesh_count++] = t;
+                //printf("  v0: (%.2f, %.2f)\n", mesh[rebuilt_count-1].v0.x, mesh[rebuilt_count-1].v0.y);
+                //printf("  v1: (%.2f, %.2f)\n", mesh[rebuilt_count].v1.x, mesh[rebuilt_count].v1.y);
+                //printf("  v2: (%.2f, %.2f)\n", mesh[rebuilt_count].v2.x, mesh[rebuilt_count].v2.y);
 		}
 	}
+
+        printf("mesh size: %d:\n", mesh_count);
+	free(bad_triangles);
+	free(poly_arr);
 	free(triangulation);
-	// return rebuilt_count, rebuilt
+	mesh = realloc(mesh, mesh_count * sizeof(triangle)); 
+	*out_count = mesh_count;
+        //free(rebuilt);
+	*out_count = mesh_count;
 }
 
 void linear_mesh(float *nodes, int *elems, float *h, int n, int m) {
@@ -199,7 +260,7 @@ void linear_mesh(float *nodes, int *elems, float *h, int n, int m) {
 	}
 }
 
-
+/*
 void read_inp(float *nodes, float *elems, FILE *fptr) {
     
     int ids[4];
@@ -218,6 +279,7 @@ void read_inp(float *nodes, float *elems, FILE *fptr) {
         printf("Node %d: (%.1f, %.1f, %.1f)\n", ids[i], x[i], y[i], z[i]);
     }    
 }
+
 
 int mesh_from_file() {
 
@@ -288,3 +350,4 @@ int mesh_from_file() {
 
 }
 
+*/

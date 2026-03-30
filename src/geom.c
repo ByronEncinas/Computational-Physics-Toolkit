@@ -192,13 +192,15 @@ int populate_polygon_array(const triangle *bad_tris, const int bad_count, edge *
 
 			// ok sure, triangles bti and btj are not the same
 			// does btj has e0?
+
+			// e1.compare(&e1, &e2);
 			edge ej0 = init_edge(btj.v0, btj.v1);
                         edge ej1 = init_edge(btj.v0, btj.v2);
                         edge ej2 = init_edge(btj.v2, btj.v1);
 
-			is_shared = compare_edg(e0, ej0) ||
-				    compare_edg(e0, ej1) ||
-				    compare_edg(e0, ej2);
+			is_shared = e0.compare(&e0, &ej0) ||
+				    e0.compare(&e0, &ej1) ||
+				    e0.compare(&e0, &ej2);
 
 
 			if (is_shared) {break;}
@@ -224,9 +226,9 @@ int populate_polygon_array(const triangle *bad_tris, const int bad_count, edge *
                         edge ej1 = init_edge(btj.v0, btj.v2);
                         edge ej2 = init_edge(btj.v2, btj.v1);
 
-                        is_shared = compare_edg(e1, ej0) ||
-                                        compare_edg(e1, ej1) ||
-                                        compare_edg(e1, ej2);
+                        is_shared = e1.compare(&e1, &ej0) ||
+                                    e1.compare(&e1, &ej1) ||
+                                    e1.compare(&e1, &ej2);
 
                         if (is_shared) {break;}
                 }
@@ -250,9 +252,9 @@ int populate_polygon_array(const triangle *bad_tris, const int bad_count, edge *
                         edge ej1 = init_edge(btj.v0, btj.v2);
                         edge ej2 = init_edge(btj.v2, btj.v1);
 
-                        is_shared = compare_edg(e2, ej0) ||
-                                        compare_edg(e2, ej1) ||
-                                        compare_edg(e2, ej2);
+                        is_shared = e2.compare(&e2, &ej0) ||
+                                    e2.compare(&e2, &ej1) ||
+                                    e2.compare(&e2, &ej2);
 
                         if (is_shared) {break;}
                 }
@@ -264,7 +266,8 @@ int populate_polygon_array(const triangle *bad_tris, const int bad_count, edge *
 	}
 	return poly_count;
 }
-
+/*
 void write_mesh() {
 	printf("Man, I wish this thing could write itself xd");
 }
+*/
