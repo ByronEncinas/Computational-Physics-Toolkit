@@ -118,10 +118,10 @@ triangle super_triangle(const float *points, const int n) {
 	float tri_side = rec_width + 2*rec_height/sqrtf(3);
 	float tri_height = tri_side * sqrtf(3)/2;
 
-	// create vertex that form the xuper_triangle
-	vertex v0 = init_vertex(x_lw + rec_width/2, tri_height + y_lw);
-        vertex v1 = init_vertex(x_lw + rec_width/2 - tri_side/2,  y_lw);
-        vertex v2 = init_vertex(x_lw + rec_width/2 + tri_side/2,  y_lw);
+	float margin = fmaxf(rec_width, rec_height) * 3.0f;
+	vertex v0 = init_vertex( x_lw + rec_width/2              , tri_height + y_lw + margin );
+	vertex v1 = init_vertex( x_lw + rec_width/2 - tri_side/2 - margin, y_lw - margin );
+	vertex v2 = init_vertex( x_lw + rec_width/2 + tri_side/2 + margin, y_lw - margin );
 
 	// declare sup_triangle
 	triangle sup_tri = init_tri(v0, v1, v2);
@@ -272,7 +272,7 @@ void write_mesh() {
 float* generate_random_grid(float low, float high, int n) {
 
         float *points =  malloc(2 * n * sizeof(float)); // 2*n only support 2D
-	srand(time(NULL));
+	//srand(time(NULL));
         for (unsigned int i = 0; i < n; i++)
 	{
                 points[2*i]     = rand_within(low, high);
@@ -281,41 +281,34 @@ float* generate_random_grid(float low, float high, int n) {
 	return points;
 }
 
-float* generate_uniform_grid(float low, float high, int n) {
+float* generate_uniform_grid(float low, float high, int side) {
 	// hexagonal grid
 
 	// it always generates form (0,0)
-        float *points =  malloc(2 * n * n * sizeof(float)); // 2*n only support 2D
-	float sep_x = (high-low)/n;
+        float *points =  malloc(2 * side * side * sizeof(float)); // 2*n only support 2D
+	float sep_x = (high-low)/side;
         float sep_y = sep_x * sqrtf(3.0f)/2.0f;
-	int idx = 0;
+	int   idx = 0;
 	float height = 0;
-	float disp =0 ;
+	float disp =0;
 	/*
-	i=0
-	j=0, 1/n, 2/n, ..., 1
-
-	i=1/n
-        j=0, 1/n, 2/n, ..., 1
-
-	i=2/n
-        j=0, 1/n, 2/n, ..., 1
+	i want to add a random number +- epsilon to sep_x such that the triangulations doesn't have problems
+	sep_x = rand_within(-1/(100*n), 1/(100*n))
 	*/
-
-        for (unsigned int i = 0; i < n; i++) // row
+        for (unsigned int i = 0; i < side; i++) // row
 	{
-	height = i*sep_y;
+	height = i*sep_y + rand_within(-1/(1000*side), 1/(1000*side));
 
-	        for (unsigned int j = 0; j < n; j++) // column
+	        for (unsigned int j = 0; j < side; j++) // column
 		{
                         disp = j * sep_x;
 			if (i % 2 == 1)
 			{
-			points[idx] = sep_x/2.0f + disp;
+			points[idx] = sep_x/2.0f + disp + rand_within(-1/(100*side), 1/(100*side));
 			}
 			else
 			{
-			points[idx] = disp;
+			points[idx] = disp + rand_within(-1/(100*side), 1/(100*side));
 			}
 
         	        points[idx+1] = height;
@@ -326,4 +319,10 @@ float* generate_uniform_grid(float low, float high, int n) {
         }
 	return points;
 }
-
+/*
+void generate_in_custom_geometry(float *hull, float density) {
+	// give me a hull, and I will generate points inside that geometry
+	// will try to have them as packed as density ()
+	int x = 1;
+}
+*/

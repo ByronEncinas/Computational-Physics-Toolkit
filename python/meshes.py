@@ -29,11 +29,11 @@ def parse_triangles(text):
 def generate_html(triangles, output_file="mesh.html"):
     all_x = [p[0] for t in triangles for p in t]
     all_y = [p[1] for t in triangles for p in t]
-    pad = 0.05
-    xmin = max(0, min(all_x) - pad)
-    xmax = max(all_x) + pad
-    ymin = max(0, min(all_y) - pad)
-    ymax = max(all_y) + pad
+    pad = 0.2
+    xmin = max(0, min(all_x)*2 - pad/2) -pad /2
+    xmax = max(all_x) + pad/2
+    ymin = max(0, min(all_y)*2 - pad/2) -pad/2
+    ymax = max(all_y) + pad/2
 
     tri_js = str(triangles)
 
@@ -47,8 +47,24 @@ def generate_html(triangles, output_file="mesh.html"):
     h2 {{ font-weight: 500; font-size: 18px; margin-bottom: 1rem; color: #333; }}
     .chart-wrap {{ position: relative; width: 700px; height: 600px; }}
   </style>
+
+<head>
+    <style>
+        :root      {{ --bg: white;   --fg: black;   }}
+        :root.dark {{ --bg: #1e1e1e; --fg: #d4d4d4; }}
+        body {{ background: var(--bg); color: var(--fg); }}
+    </style>
 </head>
 <body>
+    <button id="toggle">Toggle dark mode</button>
+
+    <script>
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches)
+            document.documentElement.classList.add('dark');
+
+        document.querySelector('#toggle').addEventListener('click', () =>
+            document.documentElement.classList.toggle('dark'));
+    </script>
   <h2>Mesh — {len(triangles)} triangles</h2>
   <div class="chart-wrap">
     <canvas id="sc"></canvas>

@@ -6,22 +6,32 @@
 
 void try_bw_mesh() {
 
-        unsigned int n = 100;
-	unsigned int mesh_size;
+        int n = 10;
+        int side = 25;
+	int mesh_size;
 
-        float *points = calloc(2*n, sizeof(float)); // 2*n
+        float *points = calloc(2*side*side, sizeof(float)); // 2*n
 
-        triangle *mesh = malloc(2 * n * sizeof(triangle));
+        //triangle *mesh = malloc(2 * n * sizeof(triangle));
 
-	points = generate_random_grid(0, 1, n);
+	points = generate_uniform_grid(0, 1, side);
+
+        for (unsigned int i=0; i < side*side; i++)
+        {
+               printf("\nPoints %d:\n", i);
+               printf("  P: %u (%.5f, %.5f)\n", i, points[2*i], points[2*i+1]);
+        }
+
+	/*
+        points = generate_uniform_grid(0, 1, n);
 
         for (unsigned int i=0; i < n; i++)
         {
                printf("\nPoints %d:\n", i);
                printf("  P: %u (%.5f, %.5f)\n", i, points[2*i], points[2*i+1]);
         }
-
-        bowyer_watson_mesh(points, n, mesh, &mesh_size);
+	*/
+        triangle *mesh = bowyer_watson_mesh(points, side*side, &mesh_size);
 
 	for (unsigned int i=0; i < mesh_size; i++)
 	{
@@ -31,7 +41,7 @@ void try_bw_mesh() {
 		printf("  v2: (%.2f, %.2f)", mesh[i].v2.x, mesh[i].v2.y);
 	}
         printf("\npoint %d\n", mesh_size-1);
-        //write_mesh_to_file(mesh, mesh_size);
+        //write_mesh_to_file(mesh, mesh_size);*/
 }
 
 void try_linear_mesh() {
