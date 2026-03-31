@@ -154,17 +154,6 @@ int equal_triangles(const triangle *a, const triangle *b) {
         return first && second && third;}
 
 
-
-// This has to be delegated to its own function
-// it will return an array called polygon with edge type en>
-// populate_polygon_array(triangulation, bad_triangles);
-
-// REMOVE BAD TRIANGLES
-// rebuild_triangulation(triangulation, bad_triangles, coun>
-
-// RE-TRIANGULATE
-// re_triangulation(polygon, triangulation, count, p);
-
 int populate_polygon_array(const triangle *bad_tris, const int bad_count, edge *polygons) {
 
 	int poly_count = 0;
@@ -264,11 +253,6 @@ int populate_polygon_array(const triangle *bad_tris, const int bad_count, edge *
 	}
 	return poly_count;
 }
-/*
-void write_mesh() {
-	printf("Man, I wish this thing could write itself xd");
-}
-*/
 float* generate_random_grid(float low, float high, int n) {
 
         float *points =  malloc(2 * n * sizeof(float)); // 2*n only support 2D
@@ -319,10 +303,3 @@ float* generate_uniform_grid(float low, float high, int side) {
         }
 	return points;
 }
-/*
-void generate_in_custom_geometry(float *hull, float density) {
-	// give me a hull, and I will generate points inside that geometry
-	// will try to have them as packed as density ()
-	int x = 1;
-}
-*/

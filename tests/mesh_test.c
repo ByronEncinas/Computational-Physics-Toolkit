@@ -22,15 +22,6 @@ void try_bw_mesh() {
                printf("  P: %u (%.5f, %.5f)\n", i, points[2*i], points[2*i+1]);
         }
 
-	/*
-        points = generate_uniform_grid(0, 1, n);
-
-        for (unsigned int i=0; i < n; i++)
-        {
-               printf("\nPoints %d:\n", i);
-               printf("  P: %u (%.5f, %.5f)\n", i, points[2*i], points[2*i+1]);
-        }
-	*/
         triangle *mesh = bowyer_watson_mesh(points, side*side, &mesh_size);
 
 	for (unsigned int i=0; i < mesh_size; i++)
