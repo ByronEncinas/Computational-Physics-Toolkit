@@ -11,5 +11,6 @@ CTestTestfile.cmake
 _deps
 CMakeUserPresets.json
 include/*.h.gch
+*/__pycache__/
 gists/
 
