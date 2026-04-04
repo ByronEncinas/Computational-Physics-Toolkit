@@ -1,10 +1,8 @@
 #include "../include/geom.h"
 #include <math.h>
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#define PI 3.141592654
-#define TOLERANCE 1e-6f
 
 vertex init_vertex(float x, float y) {
         vertex vtx;           // declares a matrix variable on the stack
@@ -120,10 +118,10 @@ triangle super_triangle(const float *points, const int n) {
 	float tri_side = rec_width + 2*rec_height/sqrtf(3);
 	float tri_height = tri_side * sqrtf(3)/2;
 
-	// create vertex that form the xuper_triangle
-	vertex v0 = init_vertex(x_lw + rec_width/2, tri_height + y_lw);
-        vertex v1 = init_vertex(x_lw + rec_width/2 - tri_side/2,  y_lw);
-        vertex v2 = init_vertex(x_lw + rec_width/2 + tri_side/2,  y_lw);
+	float margin = fmaxf(rec_width, rec_height) * 3.0f;
+	vertex v0 = init_vertex( x_lw + rec_width/2              , tri_height + y_lw + margin );
+	vertex v1 = init_vertex( x_lw + rec_width/2 - tri_side/2 - margin, y_lw - margin );
+	vertex v2 = init_vertex( x_lw + rec_width/2 + tri_side/2 + margin, y_lw - margin );
 
 	// declare sup_triangle
 	triangle sup_tri = init_tri(v0, v1, v2);
@@ -156,21 +154,13 @@ int equal_triangles(const triangle *a, const triangle *b) {
         return first && second && third;}
 
 
-
-// This has to be delegated to its own function
-// it will return an array called polygon with edge type en>
-// populate_polygon_array(triangulation, bad_triangles);
-
-// REMOVE BAD TRIANGLES
-// rebuild_triangulation(triangulation, bad_triangles, coun>
-
-// RE-TRIANGULATE
-// re_triangulation(polygon, triangulation, count, p);
-
-void populate_polygon_array(const triangle *bad_tris, const int bad_count, edge *polygon) {
+int populate_polygon_array(const triangle *bad_tris, const int bad_count, edge *polygons) {
 
 	int poly_count = 0;
-	int shared = 0;
+	int is_shared = 0;
+
+	// each triangle has 3 edges, and I have `bad_count` triangles
+	//edge *polygons = malloc( 3 * bad_count * sizeof(edge));
 
         for (int i = 0; i < bad_count; i++)
         {
@@ -178,6 +168,7 @@ void populate_polygon_array(const triangle *bad_tris, const int bad_count, edge 
 
 		// each triangle type has 3 vertex types
 		// create edges of current triangle bt
+		is_shared = 0;
 		edge e0 = init_edge(bti.v0, bti.v1);
 
 	        for (int j = 0; j < bad_count; j++)
@@ -185,51 +176,130 @@ void populate_polygon_array(const triangle *bad_tris, const int bad_count, edge 
 	                triangle btj = bad_tris[j];
 			// compare with other triangles, if they are the same, skip
 			if (equal_triangles(&bti, &btj)) {continue;}
+
+			// ok sure, triangles bti and btj are not the same
+			// does btj has e0?
+
+			// e1.compare(&e1, &e2);
+			edge ej0 = init_edge(btj.v0, btj.v1);
+                        edge ej1 = init_edge(btj.v0, btj.v2);
+                        edge ej2 = init_edge(btj.v2, btj.v1);
+
+			is_shared = e0.compare(&e0, &ej0) ||
+				    e0.compare(&e0, &ej1) ||
+				    e0.compare(&e0, &ej2);
+
+
+			if (is_shared) {break;}
 		}
+
+                if (!is_shared)
+                {
+                polygons[poly_count++] = e0;
+                }
+
+                is_shared = 0;
                 edge e1 = init_edge(bti.v1, bti.v2);
+
+                for (int j = 0; j < bad_count; j++)
+                {
+                        triangle btj = bad_tris[j];
+                        // compare with other triangles, if they are the same, skip
+                        if (equal_triangles(&bti, &btj)) {continue;}
+
+                        // ok sure, triangles bti and btj are not the same
+                        // does btj has e0?
+                        edge ej0 = init_edge(btj.v0, btj.v1);
+                        edge ej1 = init_edge(btj.v0, btj.v2);
+                        edge ej2 = init_edge(btj.v2, btj.v1);
+
+                        is_shared = e1.compare(&e1, &ej0) ||
+                                    e1.compare(&e1, &ej1) ||
+                                    e1.compare(&e1, &ej2);
+
+                        if (is_shared) {break;}
+                }
+                if (!is_shared)
+                {
+                polygons[poly_count++] = e1;
+                }
+
+                is_shared = 0;
                 edge e2 = init_edge(bti.v0, bti.v2);
+
+                for (int j = 0; j < bad_count; j++)
+                {
+                        triangle btj = bad_tris[j];
+                        // compare with other triangles, if they are the same, skip
+                        if (equal_triangles(&bti, &btj)) {continue;}
+
+                        // ok sure, triangles bti and btj are not the same
+                        // does btj has e0?
+                        edge ej0 = init_edge(btj.v0, btj.v1);
+                        edge ej1 = init_edge(btj.v0, btj.v2);
+                        edge ej2 = init_edge(btj.v2, btj.v1);
+
+                        is_shared = e2.compare(&e2, &ej0) ||
+                                    e2.compare(&e2, &ej1) ||
+                                    e2.compare(&e2, &ej2);
+
+                        if (is_shared) {break;}
+                }
+
+                if (!is_shared)
+                {
+                polygons[poly_count++] = e2;
+                }
 	}
+	return poly_count;
+}
+float* generate_random_grid(float low, float high, int n) {
+
+        float *points =  malloc(2 * n * sizeof(float)); // 2*n only support 2D
+	//srand(time(NULL));
+        for (unsigned int i = 0; i < n; i++)
+	{
+                points[2*i]     = rand_within(low, high);
+                points[2*i + 1] = rand_within(low, high);
+        }
+	return points;
 }
 
-/*  FOR EACH point P:
+float* generate_uniform_grid(float low, float high, int side) {
+	// hexagonal grid
 
-    // --- FIND BAD TRIANGLES --- DONE!
+	// it always generates form (0,0)
+        float *points =  malloc(2 * side * side * sizeof(float)); // 2*n only support 2D
+	float sep_x = (high-low)/side;
+        float sep_y = sep_x * sqrtf(3.0f)/2.0f;
+	int   idx = 0;
+	float height = 0;
+	float disp =0;
+	/*
+	i want to add a random number +- epsilon to sep_x such that the triangulations doesn't have problems
+	sep_x = rand_within(-1/(100*n), 1/(100*n))
+	*/
+        for (unsigned int i = 0; i < side; i++) // row
+	{
+	height = i*sep_y + rand_within(-1/(1000*side), 1/(1000*side));
 
+	        for (unsigned int j = 0; j < side; j++) // column
+		{
+                        disp = j * sep_x;
+			if (i % 2 == 1)
+			{
+			points[idx] = sep_x/2.0f + disp + rand_within(-1/(100*side), 1/(100*side));
+			}
+			else
+			{
+			points[idx] = disp + rand_within(-1/(100*side), 1/(100*side));
+			}
 
-    // --- FIND BOUNDARY POLYGON ---
-    // an edge is on the boundary if it appears in
-    // exactly ONE bad triangle (not shared by two)
-    allocate polygon array of edges
-    poly_count = 0
+        	        points[idx+1] = height;
 
-    for each triangle T in badTriangles:
-        for each edge E of T:                   ← 3 edges per triangle
-            shared = false
-            for each other triangle T2 in badTriangles:
-                if T2 has edge E:
-                    shared = true
-                    break
-            if not shared:
-                polygon[poly_count++] = E
-
-
-    // --- REMOVE BAD TRIANGLES ---
-    // you can't just free() individual entries from an array
-    // simplest approach: rebuild the array skipping bad ones
-    new_count = 0
-    for i in 0..count:
-        if triangles[i] is NOT in badTriangles:
-            triangles[new_count++] = triangles[i]
-    count = new_count
-
-
-    // --- RE-TRIANGULATE THE HOLE ---
-    for each edge E in polygon:
-        new_triangle = init_tri(E.v0, E.v1, P)
-        // check capacity before inserting
-        if count >= capacity:
-            capacity *= 2
-            realloc triangles
-        triangles[count++] = new_triangle
-
-*/
+			idx++;
+			idx++;
+        	}
+        }
+	return points;
+}
