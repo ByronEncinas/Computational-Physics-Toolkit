@@ -1,93 +1,173 @@
 #include "../include/geom.h" // contains the vertex, edge and triangle structs
-#include <math.h>
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-void bowyer_watson_mesh(float *points, int n) {
-/*	2D tesselation algorithm
+int write_mesh_to_file(const triangle *mesh, const int mesh_size, const char *name) {
 
-paramters:
+    FILE *fptr = fopen(name, "w");
 
-input:
-        points: array with n point coordinates which we want to mesh (size n)
-	n:      size of points // 2
-output:
-	...
-*/
-	// initializes super triangle
-	triangle sup_tri = super_triangle( points, n);
-        unsigned short ll = 2*n, count = 1;
+    if (fptr == NULL) { fprintf(stderr, "failed to open file\n"); return 1; }
 
-	// initialize output triangulation
-	triangle *triangulation = malloc( ll * sizeof(triangle)); // whatever the size needed to store a type triangle, plus the  number of triangles ot allocate
+    for (int l = 0; l < mesh_size; l++)
+    {
+	fprintf(fptr, "triangle %u:\n", l);
+	fprintf(fptr, "  v0: (%.5f, %.5f)\n", mesh[l].v0.x, mesh[l].v0.y);
+	fprintf(fptr, "  v1: (%.5f, %.5f)\n", mesh[l].v1.x, mesh[l].v1.y);
+	fprintf(fptr, "  v2: (%.5f, %.5f)\n", mesh[l].v2.x, mesh[l].v2.y);
+    }
+    fflush(fptr);
+    fclose(fptr);
+    return 0;
+}
+
+int read_mesh_to_file(const triangle *mesh, const int mesh_size) {
+
+    FILE *fptr = fopen("mesh.txt", "w");
+
+    if (fptr == NULL) { fprintf(stderr, "failed to open file\n"); return 1; }
+
+    for (int l = 0; l < mesh_size; l++)
+    {
+        fprintf(fptr, "%u (%.5f, %.5f)  (%.5f, %.5f)  (%.5f, %.5f)\n",
+                        l, mesh[l].v0.x, mesh[l].v0.y,
+                           mesh[l].v1.x, mesh[l].v1.y,
+                           mesh[l].v2.x, mesh[l].v2.y);    }
+    fflush(fptr);
+    fclose(fptr);
+    return 0;
+}
+triangle* bowyer_watson_mesh(float *points, int n, int *out_count) {
+	// define super triangle
+        triangle sup_tri = super_triangle(points, n);
+
+        unsigned int max_triangle_size = 2 * 2 * n;
+        unsigned int max_edge_size     = 3 * 2 * n;
+
+        unsigned int bad_count         = 0;
+        unsigned int tri_count         = 1;
+        unsigned int tri_capacity      = max_triangle_size;
+
+        // initialize output arrays
+        triangle *mesh          = calloc(max_triangle_size       , sizeof(triangle));
+        triangle *triangulation = calloc(max_triangle_size       , sizeof(triangle));
+        triangle *bad_triangles = calloc(max_triangle_size       , sizeof(triangle));
+
+        edge     *poly_arr      = calloc(max_edge_size    , sizeof(edge    ));
 
         triangulation[0] = sup_tri;
 
-	// points contains 3*n values
-	for (int i = 0; i < n; i++)
-
+        for (unsigned int i = 0; i < n; i++)
 	{
-		// extract all coordinates of a specific point
-		float x = points[3*i];
-                float y = points[3*i + 1];
+		bad_count = 0; // reset bad triangles count
 
-		// index of invalid/bad triangles in triangulation
-		short *index = malloc( ll * sizeof(short));
+                // convert point p into vertex type
+                vertex p = init_vertex(points[2*i], points[2*i + 1]);
 
-		// count of bad triangles in this instance of the loop
-                unsigned short bad_count = 0;
+		// worse case, all triangles are bad
+                free(bad_triangles);
+                bad_triangles = calloc(tri_count, sizeof(triangle));
 
-		// convert point p into vertex type
-                vertex p = init_vertex(x, y);
+                // --- FIND BAD TRIANGLES ---
+                for (unsigned int each_tri = 0; each_tri < tri_count; each_tri++)
+                {
+                        triangle t = triangulation[each_tri];
+                        if (in_circumcircle(&t, &p)) {bad_triangles[bad_count++] = t;}
+                }
 
-		// allocate in stack for faster access
-		triangle bad_triangles[count];
+                // --- FIND BOUNDARY POLYGON ---
 
-		// FIND BAD TRIANGLES--------------------
-		// append_bad_triangle_lists(triangulation, count)
+                if (bad_count == 0) {continue;}
+                free(poly_arr);
+                poly_arr = calloc(3 * bad_count, sizeof(edge));
 
-		for (int each_tri = 0; each_tri < count; each_tri++)
-		{
+                int poly_count = populate_polygon_array(bad_triangles, bad_count, poly_arr);
 
-			triangle t = triangulation[each_tri];
+                // --- REMOVE BAD TRIANGLES ---
 
-			if (in_circumcircle(&t, &p))
-			{
-				bad_triangles[bad_count++] = t;
-			}
-		// This has to be delegated to its own function
-		// it will return an array called polygon with edge type entries
-		// populate_polygon_array(triangulation, bad_triangles);
+                triangle *re_triangulation = calloc(tri_count, sizeof(triangle));
+		int count = 0;
+		int good_in_bad_lists = 0;
 
-		// REMOVE BAD TRIANGLES
-		// rebuild_triangulation(triangulation, bad_triangles, count);
+                for (unsigned int each_tri = 0; each_tri < tri_count; each_tri++)
+                {
+                        good_in_bad_lists = 0;
+                        triangle gt = triangulation[each_tri];
 
-		// RE-TRIANGULATE
-		// re_triangulation(polygon, triangulation, count, p);
+                        for (unsigned int each_trj = 0; each_trj < bad_count; each_trj++)
+                        {
+                                triangle bt = bad_triangles[each_trj];
+                                if (equal_triangles(&bt, &gt))
+                                {
+                                        good_in_bad_lists = 1;
+                                        break;
+                                }
+                        }
+                        if (good_in_bad_lists) {continue;}
+                        re_triangulation[count++] = gt;
+                }
 
-		// step 3: Connect P(x,y,z) to every edge on the boundary of that hole
-		}
+		// tri_count <- good triangles at the beginning of the loop
+		// bad_count <- bad  triangles found in triangulation
+		// count     <- tri_count - bad_count - remaining triangles
 
-	// cleanup, remove every triangle that shares a vertex with the supertriangle
-	// the super triangle was never part of the input
+                memcpy(triangulation, re_triangulation, count * sizeof(triangle));
+                free(re_triangulation);
+                tri_count = count;
 
-	// at this point, i have a list of triangles,
-	}
-}
+                // --- RE-TRIANGULATE THE HOLE ---
+                for (unsigned int each_edg = 0; each_edg < poly_count; each_edg++)
+                {
+                        if (tri_count >= tri_capacity)
+                        {
+                        	tri_capacity *= 2;
+				triangle *tmp = realloc(triangulation, tri_capacity * sizeof(triangle));
+				if (!tmp) {
+				    free(triangulation);
+				    free(bad_triangles);
+				    free(poly_arr);
+				    free(mesh);
+				    return NULL;
+				}
+
+				triangulation = tmp;
+                        }
+
+                        edge edge_i = poly_arr[each_edg];
+                        triangle new_tri = init_tri(edge_i.v0, edge_i.v1, p);
+                        triangulation[tri_count++] = new_tri;
+                }
+        }
+        // --- CLEANUP ---
+        free(bad_triangles); free(poly_arr);
+        int mesh_count = 0;
+	int is_shared = 0;
+	mesh = realloc(mesh, tri_capacity * sizeof(triangle));
+
+        for (unsigned int each_tri = 0; each_tri < tri_count; each_tri++)
+        {
+                triangle t = triangulation[each_tri];
+
+                // match all possible combinations of vertex between t and sup_tri
+                is_shared = compare_vtx(&sup_tri.v0, &t.v0) ||
+                            compare_vtx(&sup_tri.v1, &t.v0) ||
+                            compare_vtx(&sup_tri.v2, &t.v0) ||
+                            compare_vtx(&sup_tri.v0, &t.v1) ||
+                            compare_vtx(&sup_tri.v1, &t.v1) ||
+                            compare_vtx(&sup_tri.v2, &t.v1) ||
+                            compare_vtx(&sup_tri.v0, &t.v2) ||
+                            compare_vtx(&sup_tri.v1, &t.v2) ||
+                            compare_vtx(&sup_tri.v2, &t.v2);
+
+                if (!is_shared) { mesh[mesh_count++] = t;}
+        }
+        *out_count = mesh_count;
+	free(triangulation);
+        write_mesh_to_file(mesh, mesh_count, "triangles.txt");
+	write_mesh_to_file(&sup_tri, 1, "sup_triangle.txt");
+        return mesh;}
 
 void linear_mesh(float *nodes, int *elems, float *h, int n, int m) {
-	/*
-	mesh1d: this functions generates a 1D mesh of nodes and elements.
-
-	paramters:
-		nodes: empty array to save nodes coordinates (size n)
-		elems: empty array, connections of an element (size 2n)
-			contains indices of the nodes connected to that element
-		bounds: array of size 2,
-		h: separation between nodes
-		   - float: fixed separation
- 	*/
-
         // verify if method is 0 (static) or 1 (adaptative)
         if (m == 0) {
 	        // if m==0 then h is float
@@ -107,6 +187,3 @@ void linear_mesh(float *nodes, int *elems, float *h, int n, int m) {
 	}
 }
 
-void mesh_from_file(){
-	printf("Placeholder Text\n");
-}
