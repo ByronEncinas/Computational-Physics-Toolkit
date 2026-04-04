@@ -1,15 +1,17 @@
-# this file remains as it is, and 
+import ctypes, os, sys
 
-import ctypes, os
+class Toolkit:
+    def __init__(self):
+        lib_path = os.path.join(os.getcwd(), "build/libcpt.so")
+        self.tools = ctypes.CDLL(lib_path)
 
-path = os.getcwd()
+    def random_between(self, l, u):
+        self.tools.rand_within.argtypes = [ctypes.c_float, ctypes.c_float]
+        self.tools.rand_within.restype  = ctypes.c_float
+        return self.tools.rand_within(l, u)
 
+toolkit = Toolkit()
 
+result = toolkit.random_between(0.0, 1.0)
 
-lib = ctypes.CDLL(f'/home/leni/Computational-Physics-Toolkit/build/libcpt.so')
-
-# void mesh_from_file(){
-
-lib.mesh_from_file.argtypes = []
-
-lib.mesh_from_file()
+print(result)
