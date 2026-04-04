@@ -108,5 +108,5 @@ void linear_mesh(float *nodes, int *elems, float *h, int n, int m) {
 }
 
 void mesh_from_file(){
-	printf("Placeholder Text");
+	printf("Placeholder Text\n");
 }
