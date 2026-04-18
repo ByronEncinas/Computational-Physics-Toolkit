@@ -154,6 +154,7 @@ int equal_triangles(const triangle *a, const triangle *b) {
         return first && second && third;}
 
 
+
 int populate_polygon_array(const triangle *bad_tris, const int bad_count, edge *polygons) {
 
 	int poly_count = 0;
@@ -251,9 +252,10 @@ int populate_polygon_array(const triangle *bad_tris, const int bad_count, edge *
                 polygons[poly_count++] = e2;
                 }
 	}
+
 	return poly_count;
 }
-float* generate_random_grid(float low, float high, int n) {
+float* generate_random_grid(const float low, const float high, const int n) {
 
         float *points =  malloc(2 * n * sizeof(float)); // 2*n only support 2D
 	//srand(time(NULL));
@@ -265,7 +267,7 @@ float* generate_random_grid(float low, float high, int n) {
 	return points;
 }
 
-float* generate_uniform_grid(float low, float high, int side) {
+float* generate_uniform_grid(const float low, const float high, const int side) {
 	// hexagonal grid
 
 	// it always generates form (0,0)

@@ -13,4 +13,7 @@ CMakeUserPresets.json
 include/*.h.gch
 */__pycache__/
 gists/
-
+python/
+build/*txt
+build/*md
+*sh
