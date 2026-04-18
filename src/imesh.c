@@ -145,10 +145,6 @@ float* generate_afinne_grid(const float x_low, const float x_high,
         int   idx = 0;
         float height = 0;
         float disp =0;
-        /*
-        i want to add a random number +- epsilon to sep_x such that the triangulations doesn't>
-        sep_x = rand_within(-1/(100*n), 1/(100*n))
-        */
         for (unsigned int i = 0; i < side; i++) // row
         {
         height = y_low + i*sep_y ;
