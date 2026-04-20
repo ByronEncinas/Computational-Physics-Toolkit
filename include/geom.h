@@ -41,7 +41,10 @@ float    rand_within       (float low, float high);
 int populate_polygon_array(const triangle *bad_tris, const int bad_count, edge *polygons);
 int  equal_triangles       (const triangle *a, const triangle *b);
 
-float* generate_random_grid(float low, float high, int n);
-float* generate_uniform_grid(float low, float high, int n);
+
+float* generate_random_grid(const float low, const float high, const int n);
+float* generate_uniform_grid(const float low, const float high, const int side);
+//float* generate_custom_grid(const float *hull, const int side, const char *name);
+
 
 #endif

@@ -37,8 +37,9 @@ int read_mesh_to_file(const triangle *mesh, const int mesh_size) {
     fclose(fptr);
     return 0;
 }
+
 triangle* bowyer_watson_mesh(float *points, int n, int *out_count) {
-	// define super triangle
+
         triangle sup_tri = super_triangle(points, n);
 
         unsigned int max_triangle_size = 2 * 2 * n;
@@ -48,31 +49,37 @@ triangle* bowyer_watson_mesh(float *points, int n, int *out_count) {
         unsigned int tri_count         = 1;
         unsigned int tri_capacity      = max_triangle_size;
 
-        // initialize output arrays
         triangle *mesh          = calloc(max_triangle_size       , sizeof(triangle));
         triangle *triangulation = calloc(max_triangle_size       , sizeof(triangle));
         triangle *bad_triangles = calloc(max_triangle_size       , sizeof(triangle));
 
-        edge     *poly_arr      = calloc(max_edge_size    , sizeof(edge    ));
+        edge     *poly_arr      = calloc(max_edge_size           , sizeof(edge    ));
 
+	unsigned int p_index = 0;
         triangulation[0] = sup_tri;
 
         for (unsigned int i = 0; i < n; i++)
 	{
 		bad_count = 0; // reset bad triangles count
 
-                // convert point p into vertex type
-                vertex p = init_vertex(points[2*i], points[2*i + 1]);
+		p_index = 2*i;
+                vertex p = init_vertex(points[p_index], points[p_index + 1]);
 
-		// worse case, all triangles are bad
                 free(bad_triangles);
                 bad_triangles = calloc(tri_count, sizeof(triangle));
 
                 // --- FIND BAD TRIANGLES ---
                 for (unsigned int each_tri = 0; each_tri < tri_count; each_tri++)
                 {
+			// at i=0, the only triangle in triangulation is the sup_tri
+			// its index is zero
                         triangle t = triangulation[each_tri];
-                        if (in_circumcircle(&t, &p)) {bad_triangles[bad_count++] = t;}
+
+                        if (in_circumcircle(&t, &p))
+			{
+				bad_triangles[bad_count] = t;
+				bad_count++;
+			}
                 }
 
                 // --- FIND BOUNDARY POLYGON ---
@@ -85,7 +92,7 @@ triangle* bowyer_watson_mesh(float *points, int n, int *out_count) {
 
                 // --- REMOVE BAD TRIANGLES ---
 
-                triangle *re_triangulation = calloc(tri_count, sizeof(triangle));
+                triangle *re_triangulation = calloc(tri_count    , sizeof(triangle));
 		int count = 0;
 		int good_in_bad_lists = 0;
 
@@ -97,6 +104,7 @@ triangle* bowyer_watson_mesh(float *points, int n, int *out_count) {
                         for (unsigned int each_trj = 0; each_trj < bad_count; each_trj++)
                         {
                                 triangle bt = bad_triangles[each_trj];
+
                                 if (equal_triangles(&bt, &gt))
                                 {
                                         good_in_bad_lists = 1;
@@ -104,13 +112,9 @@ triangle* bowyer_watson_mesh(float *points, int n, int *out_count) {
                                 }
                         }
                         if (good_in_bad_lists) {continue;}
-                        re_triangulation[count++] = gt;
+                        re_triangulation[count] = gt;
+			count++;
                 }
-
-		// tri_count <- good triangles at the beginning of the loop
-		// bad_count <- bad  triangles found in triangulation
-		// count     <- tri_count - bad_count - remaining triangles
-
                 memcpy(triangulation, re_triangulation, count * sizeof(triangle));
                 free(re_triangulation);
                 tri_count = count;
@@ -122,6 +126,7 @@ triangle* bowyer_watson_mesh(float *points, int n, int *out_count) {
                         {
                         	tri_capacity *= 2;
 				triangle *tmp = realloc(triangulation, tri_capacity * sizeof(triangle));
+
 				if (!tmp) {
 				    free(triangulation);
 				    free(bad_triangles);
@@ -133,7 +138,7 @@ triangle* bowyer_watson_mesh(float *points, int n, int *out_count) {
 				triangulation = tmp;
                         }
 
-                        edge edge_i = poly_arr[each_edg];
+                        edge edge_i = poly_arr[each_edg]; //
                         triangle new_tri = init_tri(edge_i.v0, edge_i.v1, p);
                         triangulation[tri_count++] = new_tri;
                 }
@@ -164,7 +169,7 @@ triangle* bowyer_watson_mesh(float *points, int n, int *out_count) {
         *out_count = mesh_count;
 	free(triangulation);
         write_mesh_to_file(mesh, mesh_count, "triangles.txt");
-	write_mesh_to_file(&sup_tri, 1, "sup_triangle.txt");
+	//write_mesh_to_file(&sup_tri, 1, "sup_triangle.txt");
         return mesh;}
 
 void linear_mesh(float *nodes, int *elems, float *h, int n, int m) {
