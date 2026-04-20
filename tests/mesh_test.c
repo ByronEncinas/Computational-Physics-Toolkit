@@ -1,9 +1,6 @@
-#include "../include/geom.h" // contains the vertex, edge and triangle structs
-#include "../include/imesh.h"
-#include "../include/mesh.h"
 #include <stdio.h>
 #include <stdlib.h>
-
+#include "../include/toolkit.h"
 
 const int hull_size = 53;
 const float hull[] = {
@@ -65,7 +62,7 @@ const float hull[] = {
 
 void try_imesh() {
 
-        int side = 100;
+        int side = 5;
         int mesh_size;
         float *points = calloc(2*side*side, sizeof(float));
 	//points        = generate_custom_grid(side, hull, hull_size, -0.5, 1);
@@ -117,8 +114,8 @@ void try_bw_mesh() {
 }
 
 int main() {
-	//try_imesh();
-	try_bw_mesh();
+	try_imesh();
+	//try_bw_mesh();
         return 0;
 
 }

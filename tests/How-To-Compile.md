@@ -30,3 +30,23 @@ This will yield an error. Why? because we are using the math library. We need to
     gcc mesh_test.o mesh.o geom.o -lm -o executable
 
 And finally, we got it. We create an executable
+
+
+# Create a library named toolkit
+
+create binary objects
+
+	gcc -c ../include/*.h
+	gcc -c ../src/*.c
+
+move to a unique directory
+
+	mv *.o ../obj/
+
+name the library with the first argument and link al binaries (into its own diectory too)
+
+	ar rcs ../lib/toolkit.a ../obj/geom.o ../obj/imesh.o ../obj/mesh.o ../obj/sde.o ../obj/toolkit.o ../obj/vec.o
+
+make sure you also have the binary for your main file, in this case `mesh_test.o` 
+
+	gcc ../obj/mesh_test.o -L../lib -ltoolkit -lm -o ../mesh_test

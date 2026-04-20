@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include "geom.h"
 
 static int ccw( const int ax, const int ay,
                 const int bx, const int by,
