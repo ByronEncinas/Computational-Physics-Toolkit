@@ -63,114 +63,62 @@ const float hull[] = {
     0.0000, 0.2210
 };
 
-int point_inside_hull(const float *hull, const int length, const float x, const float y) {
-
-        int crossings = 0;
-
-        for (int i = 0; i < length; i++)
-        {
-		int j = (i + 1) % length;
-                float vix = hull[2*i], viy = hull[2*i+1];
-                float vjx = hull[2*j], vjy = hull[2*j+1];
-		if (fabsf(vjy - viy) < TOLERANCE) {continue;}
-                float intersect = vix + (vjx - vix) * (y - viy) / (vjy - viy);
-		if (((viy > y) != (vjy > y)) && (x < intersect)){crossings++;}
-        }
-        return (crossings % 2 == 1);}
-
 void try_imesh() {
 
-        int side = 50;
+        int side = 100;
         int mesh_size;
-
-        float *points = calloc(2*side*side, sizeof(float)); // 2*n
-        //float* generate_afinne_grid(const float x_low, const float x_high,
-        //                const float y_low, const float y_high, const int side)
-        //points = generate_afinne_grid(xl, xh, yl, yh, side);
-        points = generate_uniform_grid(-0.5, 1, side);
-        printf("[\n");
+        float *points = calloc(2*side*side, sizeof(float));
+	//points        = generate_custom_grid(side, hull, hull_size, -0.5, 1);
+        points        = generate_uniform_grid(-0.5, 1, side);
+        printf("nodes = [\n");
         for (unsigned int i=0; i < side*side; i++)
         {
-                int l = point_inside_hull(hull, hull_size, points[2*i], points[2*i+1]);
-		printf("(%.5f, %.5f, %u),\n", points[2*i], points[2*i+1], l);
+               printf("%u (%.5f, %.5f)\n", i, points[2*i], points[2*i+1]);
         }
         printf("]\n");
 
-	int *mesh = (int*)bidimensional_mesh(points, side*side, &mesh_size);
+	int *mesh = (int*)bidimensional_mesh(points, side*side, &mesh_size, hull, hull_size);
 
-        printf("\n# Elements %d:\n", mesh_size);
+        printf("elements = [\n");
         for (unsigned int i=0; i < mesh_size; i++)
         {
-                printf("\nElement %d:\n", i);
-                printf("E: %d\n", mesh[i]);
+                printf("(%u, %d, %d),\n", i, mesh[3*i], mesh[3*i+1], mesh[3*i+2]);
         }
+        printf("]\n");
+
 }
 
 void try_bw_mesh() {
 
         int side = 3;
-	int mesh_size;
+        int mesh_size;
 
-        float *points = calloc(2*side*side, sizeof(float)); // 2*n
+        float *points = calloc(2*side*side, sizeof(float));
 
-        points = generate_random_grid(0, 1, n);
-
+        points = generate_uniform_grid(0, 1, side);
+        printf("nodes = [\n");
         for (unsigned int i=0; i < side*side; i++)
         {
-               printf("\nPoints %d:\n", i);
-               printf("  P: %u (%.5f, %.5f)\n", i, points[2*i], points[2*i+1]);
+               printf("(%.5f, %.5f),\n", i, points[2*i], points[2*i+1]);
         }
-
+        printf("]\n");
         triangle *mesh = bowyer_watson_mesh(points, side*side, &mesh_size);
 
-	for (unsigned int i=0; i < mesh_size; i++)
-	{
-		printf("\ntriangle %d:\n", i);
-		printf("  v0: (%.2f, %.2f)\n", mesh[i].v0.x, mesh[i].v0.y);
-		printf("  v1: (%.2f, %.2f)\n", mesh[i].v1.x, mesh[i].v1.y);
-		printf("  v2: (%.2f, %.2f)", mesh[i].v2.x, mesh[i].v2.y);
-	}
-        printf("\npoint %d\n", mesh_size-1);
-}
-
-void try_linear_mesh() {
-
-        int n = 10;
-        float *nodes = malloc(n * sizeof(float)); // in heap
-        int *elems = malloc(n * 2 * sizeof(int));
-        float h[] = {0.0, 0.2, 0.3, 0.4, 0.5, 0.4, 0.3, 0.2, 0.5};
-        int m = 0;
-
-        linear_mesh(nodes, elems, h, n, 1);
-
-        // print nodes
-        printf("nodes:\n");
-
-        for (int i = 0; i < n; i++)
+        printf("elements = {\n");
+        for (unsigned int i=0; i < mesh_size; i++)
         {
-                printf("  nodes[%d] = %f\n", i, nodes[i]);
+                printf("'%d':\n", i);
+		printf("{\n'v0': (%.2f, %.2f),\n", mesh[i].v0.x, mesh[i].v0.y);
+                printf(   "'v1': (%.2f, %.2f),  \n", mesh[i].v1.x, mesh[i].v1.y);
+                printf(   "'v2': (%.2f, %.2f) },\n", mesh[i].v2.x, mesh[i].v2.y);
         }
-
-        // print elems as pairs
-        printf("elems:\n");
-
-        for (int i = 0; i < n-1; i++)
-        {
-                printf("  elem[%d] = [%d, %d]\n", i, elems[2*i], elems[2*i+1]);
-        }
-
-        free(nodes);
-        free(elems);
-
-
-        for (int i = 0; i < 10; i++)
-        {
-                printf("%f\n", rand_within(0.0, 1.0));
-        }
+        printf("}\n");
+        printf("\nElements: %d\n", mesh_size-1);
 }
 
 int main() {
-	try_imesh();
+	//try_imesh();
+	try_bw_mesh();
         return 0;
 
 }

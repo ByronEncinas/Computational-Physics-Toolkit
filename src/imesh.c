@@ -4,7 +4,61 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int populate_polygon_array_index(const triangle *bad_tris, const int bad_count,
+
+float* generate_custom_grid(int plen, const float *hull, const int hlen,
+			const float l, const float h){
+
+        printf("%d\n", plen);
+        printf("%d\n", hlen);
+
+        float *points = calloc(2*plen*plen, sizeof(float));
+        points        = generate_uniform_grid(l, h, plen);
+
+        float *pinhs  = calloc(2*plen*plen, sizeof(float));
+        int pinh      = 0;
+        printf("nodes = [\n");
+        for (unsigned int i = 0; i < plen*plen; i++)
+        {
+                int l = point_inside_hull(hull, hlen, points[2*i], points[2*i+1]);
+                if (l == 0){continue; }
+                pinhs[2*pinh    ] = points[2*i    ];
+                pinhs[2*pinh + 1] = points[2*i + 1];
+                printf("(%1.4f, %1.4f, %u),\n", points[2*i], points[2*i + 1], pinh);
+                pinh++;
+
+        }
+        printf("]\n");
+        plen = pinh;
+        return pinhs;
+}
+
+int point_inside_hull(const float *hull, const int length, const float x, const float y) {
+
+        int crossings = 0;
+
+        for (int i = 0; i < length; i++)
+        {
+                int j = (i + 1) % length;
+                float vix = hull[2*i], viy = hull[2*i+1];
+                float vjx = hull[2*j], vjy = hull[2*j+1];
+                if (fabsf(vjy - viy) < TOLERANCE) {continue;}
+                float intersect = vix + (vjx - vix) * (y - viy) / (vjy - viy);
+                if (((viy > y) != (vjy > y)) && (x < intersect)){crossings++;}
+        }
+	//if (crossings % 2 == 1){printf("crossings? %u \n", 1);}
+        return (crossings % 2 == 1);
+}
+
+static float* get_centroid(   const float ax, const float ay,
+                              const float bx, const float by,
+                              const float cx, const float cy) {
+	static float p[2];
+	p[0] = (ax + bx + cx)/3.0f;
+	p[1] = (ay + by + cy)/3.0f;
+    return p;
+}
+
+static int populate_polygon_array_index(const triangle *bad_tris, const int bad_count,
                         int *bad_index, edge *polygons, int *poly_index) {
 
         int poly_count = 0;
@@ -134,7 +188,7 @@ int populate_polygon_array_index(const triangle *bad_tris, const int bad_count,
         return poly_count;
 }
 
-float* generate_afinne_grid(const float x_low, const float x_high,
+static float* generate_afinne_grid(const float x_low, const float x_high,
 			const float y_low, const float y_high, const int side) {
         // hexagonal grid
 
@@ -170,7 +224,8 @@ float* generate_afinne_grid(const float x_low, const float x_high,
         return points;
 }
 
-void* bidimensional_mesh(float *points, int n, int *out_count) {
+void* bidimensional_mesh(const float *points, const int n, int *out_count, 
+						const float *hull, const int hull_size) {
 
         // define super triangle
         triangle sup_tri = super_triangle(points, n);
@@ -358,7 +413,24 @@ void* bidimensional_mesh(float *points, int n, int *out_count) {
                             compare_vtx(&sup_tri.v2, &t.v2);
 
                 if (!is_shared)
-                {
+                {/*
+		float* pss;
+                int intersects = 0;
+                // Points C
+                float pcx = points[a   +3];
+                float pcy = points[a+1 +3];
+                // Points D
+                float pdx = points[b   +3];
+                float pdy = points[b+1 +3];
+                // Points E
+                float pex = points[c   +3];
+                float pey = points[c+1 +3];
+		pss = get_centroid(pcx, pcy, pdx, pdy, pex, pey);
+		printf("center of mass %1.5f, %1.5fm\n", pss[0], pss[1]);
+                intersects = point_inside_hull(hull, hull_size, pss[0], pss[1]);
+
+                if (intersects) {intersects = 0; continue;}*/
+
                 //mesh[mesh_count] = t;
 		//printf("(%d, %d, %d)\n", a-3,b-3,c-3);
                 mesh_elems[3*mesh_count]    = a - 3;
@@ -367,6 +439,7 @@ void* bidimensional_mesh(float *points, int n, int *out_count) {
                 mesh_count++;
                 }
         }
+
         *out_count = mesh_count;
         free(triangulation);
         free(elems);
