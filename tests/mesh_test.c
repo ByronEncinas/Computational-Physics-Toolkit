@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../include/toolkit.h"
+#include "../include/geom.h"
+#include "../include/imesh.h"
+#include "../include/mesh.h"
+
 
 const int hull_size = 53;
 const float hull[] = {
