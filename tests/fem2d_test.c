@@ -13,8 +13,8 @@ int main(){
 	int num_t = 2, i,j,k;
 	int num_nodes = num_t+2;
 	
-	float pointsx[4][3] = {{0,160,110},{50,0,110}};
-	float pointsy[4][3] = {{0,0,120},{120,0,120}};
+	float pointsx[2][3] = {{0,160,110},{50,0,110}};
+	float pointsy[2][3] = {{0,0,120},{120,0,120}};
 	int nodes[6] = {1,3,4,2,1,4};
 	float bc[2][2] = {{1,330},{3,250}};
 	
